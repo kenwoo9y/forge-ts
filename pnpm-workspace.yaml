@@ -1,0 +1,20 @@
+packages:
+  - apps/*
+  - packages/*
+  - infra
+injectWorkspacePackages: true
+supportedArchitectures:
+  os:
+    - current
+  cpu:
+    - current
+allowBuilds:
+  "@prisma/engines": true
+  esbuild: true
+  lefthook: true
+  msgpackr-extract: true
+  prisma: true
+  sharp: true
+minimumReleaseAgeExclude:
+  - nativewind@4.2.5
+  - react-native-css-interop@0.2.5

@@ -1,0 +1,41 @@
+{
+  "name": "forge-ts",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "format": "turbo run format",
+    "format:yaml": "prettier --write \"**/*.{yml,yaml}\"",
+    "test": "turbo run test",
+    "spell-check": "cspell \"**\"",
+    "unused-check": "DATABASE_URL=postgresql://user:password@localhost:5432/db knip --no-config-hints",
+    "dependency-check": "depcruise apps/api packages infra && depcruise -c apps/web/.dependency-cruiser.cjs apps/web && depcruise -c apps/mobile/.dependency-cruiser.cjs apps/mobile",
+    "dependency-check:root": "depcruise apps/api packages infra",
+    "dependency-check:web": "depcruise -c apps/web/.dependency-cruiser.cjs apps/web",
+    "dependency-check:mobile": "depcruise -c apps/mobile/.dependency-cruiser.cjs apps/mobile"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@11.22.0",
+  "devDependencies": {
+    "@biomejs/biome": "2.5.8",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^20.4.3",
+    "@types/node": "26.2.0",
+    "@vitest/coverage-v8": "4.1.10",
+    "cspell": "^10.0.1",
+    "dependency-cruiser": "^18.1.1",
+    "knip": "^6.29.0",
+    "lefthook": "^2.1.9",
+    "prettier": "^3.9.4",
+    "turbo": "^2.10.7",
+    "typescript": "^6.0.3",
+    "vitest": "4.1.10"
+  }
+}

@@ -1,0 +1,134 @@
+name: App Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/api/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/app-deploy.yaml"
+
+# infra-deploy.yaml と同じグループを共有し、CDKによるインフラ更新とアプリのイメージビルド・ECS Blue/Greenデプロイが同時に走らないようにする
+# （cancel-in-progressをtrueにすると、実行中のdocker push/cdk deployが中断され不整合な状態を招くおそれがあるためfalseで待機させる）
+concurrency:
+  group: infra-app-deploy-lock
+  cancel-in-progress: false
+
+jobs:
+  # ─── 承認ゲート ──────────────────────────────────────────────────────────────
+  # matrix化されたbuild-push-scanに直接environmentを付けると、api/webそれぞれで
+  # 個別に承認が要求されるため、承認だけを行う専用ジョブを前段に置く
+  approve:
+    name: Approval Gate
+    runs-on: ubuntu-latest
+    environment: main
+    permissions: {}
+    steps:
+      - run: echo "Approved. Proceeding with app deploy."
+
+  # ─── Docker Build / ECR Push / Scan ─────────────────────────────────────────
+  build-push-scan:
+    name: Build, Push & Scan (${{ matrix.app }})
+    needs: approve
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      matrix:
+        include:
+          - app: api
+            ecr_repository: forge-ts/api-dev
+            dockerfile: apps/api/Dockerfile
+          - app: web
+            ecr_repository: forge-ts/web-dev
+            dockerfile: apps/web/Dockerfile
+    steps:
+      - uses: actions/checkout@v6
+
+      # ビルド・pushコマンドのログにそのまま出ないようマスクする
+      # 認証情報を設定する前に登録することで、Configure AWS credentials自体の出力にアカウントIDが含まれていた場合も確実にマスクされるようにする
+      - name: Mask AWS account ID
+        env:
+          ROLE_ARN: ${{ secrets.AWS_APP_DEPLOY_ROLE_ARN }}
+        run: |
+          ACCOUNT_ID=$(echo "$ROLE_ARN" | cut -d: -f5)
+          echo "::add-mask::$ACCOUNT_ID"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_APP_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image (SHA tag only)
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ matrix.ecr_repository }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build --platform linux/arm64 \
+            -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" \
+            -f "${{ matrix.dockerfile }}" .
+          docker push "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+
+      - name: Check ECR image scan results
+        env:
+          REPOSITORY: ${{ matrix.ecr_repository }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # ECRはpush後に非同期でスキャンを登録するため、直後に describe するとScanNotFoundException になることがある。aws ecr wait image-scan-complete の
+          # waiterはこの例外をリトライ対象として扱わず即座に失敗するため、スキャンが登録されるまで先に手動でポーリングする。
+          echo "Waiting for image scan to be registered..."
+          for i in $(seq 1 30); do
+            if aws ecr describe-image-scan-findings \
+              --repository-name "$REPOSITORY" \
+              --image-id "imageTag=$IMAGE_TAG" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query 'imageScanStatus.status' --output text >/dev/null 2>&1; then
+              break
+            fi
+            echo "Scan not registered yet... ($i/30)"
+            sleep 5
+          done
+
+          echo "Waiting for image scan to complete..."
+          aws ecr wait image-scan-complete \
+            --repository-name "$REPOSITORY" \
+            --image-id "imageTag=$IMAGE_TAG" \
+            --region "${{ vars.AWS_REGION }}"
+
+          CRITICAL=$(aws ecr describe-image-scan-findings \
+            --repository-name "$REPOSITORY" \
+            --image-id "imageTag=$IMAGE_TAG" \
+            --region "${{ vars.AWS_REGION }}" \
+            --query 'imageScanFindings.findingSeverityCounts.CRITICAL' \
+            --output text)
+
+          if [ "$CRITICAL" != "None" ] && [ -n "$CRITICAL" ] && [ "$CRITICAL" -gt 0 ]; then
+            echo "::error::Found $CRITICAL CRITICAL vulnerability(ies) in ${{ matrix.app }} image. Deployment blocked."
+            exit 1
+          fi
+          echo "No CRITICAL vulnerabilities found. Proceeding."
+
+      - name: Tag as latest and push (triggers CodePipeline)
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ matrix.ecr_repository }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker tag "$REGISTRY/$REPOSITORY:$IMAGE_TAG" "$REGISTRY/$REPOSITORY:latest"
+          docker push "$REGISTRY/$REPOSITORY:latest"

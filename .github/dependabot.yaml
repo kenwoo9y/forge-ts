@@ -1,0 +1,88 @@
+version: 2
+updates:
+  # pnpm ワークスペース全体（ルート）
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-type: "all"
+    open-pull-requests-limit: 5
+    versioning-strategy: "increase"
+
+  # API アプリケーション
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+
+  # Web アプリケーション
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+
+  # Mobile アプリケーション
+  - package-ecosystem: "npm"
+    directory: "/apps/mobile"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+
+  # Infrastructure (CDK)
+  - package-ecosystem: "npm"
+    directory: "/infra"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # Database パッケージ
+  - package-ecosystem: "npm"
+    directory: "/packages/db"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # Auth パッケージ
+  - package-ecosystem: "npm"
+    directory: "/packages/auth"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # Error パッケージ
+  - package-ecosystem: "npm"
+    directory: "/packages/error"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # Schema パッケージ
+  - package-ecosystem: "npm"
+    directory: "/packages/schema"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # Docker 依存関係 (API)
+  - package-ecosystem: "docker"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # Docker 依存関係 (Web)
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+
+  # GitHub Actions ワークフロー
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
