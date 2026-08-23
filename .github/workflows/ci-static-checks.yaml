@@ -1,0 +1,62 @@
+name: CI - Static Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  unused-check:
+    name: Unused Code Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Knip check
+        run: pnpm run unused-check
+
+  dependency-check:
+    name: Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build error package
+        run: pnpm --filter error run build
+
+      - name: Build schema package
+        run: pnpm --filter schema run build
+
+      - name: Build auth package
+        run: pnpm --filter auth run build
+
+      - name: Generate Prisma client
+        run: pnpm --filter db run generate
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+
+      - name: Build api package
+        run: pnpm --filter api run build
+
+      - name: Run dependency-cruiser check
+        run: pnpm run dependency-check

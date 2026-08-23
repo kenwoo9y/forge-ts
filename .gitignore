@@ -1,0 +1,11 @@
+node_modules
+dist
+.next
+out
+coverage
+*.log
+.env
+.turbo
+.pnpm-store
+.vscode
+.claude/settings.local.json

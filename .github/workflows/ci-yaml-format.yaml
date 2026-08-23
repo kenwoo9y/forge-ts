@@ -1,0 +1,27 @@
+name: CI - YAML Format
+
+on:
+  pull_request:
+    paths:
+      - "**/*.yml"
+      - "**/*.yaml"
+
+jobs:
+  yaml-format-check:
+    name: YAML Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run YAML format check
+        run: pnpm exec prettier --check "**/*.{yml,yaml}"

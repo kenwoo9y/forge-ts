@@ -1,0 +1,75 @@
+name: Infra Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra-deploy.yaml"
+
+# app-deploy.yaml と同じグループを共有し、CDKによるインフラ更新とアプリのイメージビルド・ECS Blue/Greenデプロイが同時に走らないようにする
+concurrency:
+  group: infra-app-deploy-lock
+  cancel-in-progress: false
+
+jobs:
+  cdk-deploy:
+    name: CDK Deploy
+    runs-on: ubuntu-latest
+    environment: main
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      POSTGRES_DB: ${{ vars.POSTGRES_DB }}
+      PIPELINE_ACCOUNT_ID: ${{ secrets.PIPELINE_ACCOUNT_ID }}
+      STG_ACCOUNT_ID: ${{ secrets.STG_ACCOUNT_ID }}
+      PROD_ACCOUNT_ID: ${{ secrets.PROD_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # PIPELINE/STG/PROD_ACCOUNT_IDはsecretsのため通常はGitHub側で自動マスクされるが、
+      # cdk synth/deployの出力（クロスアカウントロールARN等）で加工された形で出力されると自動マスクをすり抜ける場合があるため、念のため明示的にマスク登録する
+      # 認証情報を設定する前に登録することで、Configure AWS credentials自体の出力にアカウントIDが含まれていた場合も確実にマスクされるようにする
+      - name: Mask AWS account ID
+        env:
+          ROLE_ARN: ${{ secrets.AWS_INFRA_DEPLOY_ROLE_ARN }}
+        run: |
+          ACCOUNT_ID=$(echo "$ROLE_ARN" | cut -d: -f5)
+          echo "::add-mask::$ACCOUNT_ID"
+          for id in "$PIPELINE_ACCOUNT_ID" "$STG_ACCOUNT_ID" "$PROD_ACCOUNT_ID"; do
+            if [ -n "$id" ]; then
+              echo "::add-mask::$id"
+            fi
+          done
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_INFRA_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: CDK Synth
+        working-directory: infra
+        run: |
+          npx cdk synth --no-notices \
+            -c githubOrg="${{ github.repository_owner }}" \
+            -c githubRepo="${{ github.event.repository.name }}"
+
+      - name: CDK Deploy
+        working-directory: infra
+        run: |
+          npx cdk deploy --all --require-approval never --no-notices \
+            -c githubOrg="${{ github.repository_owner }}" \
+            -c githubRepo="${{ github.event.repository.name }}"

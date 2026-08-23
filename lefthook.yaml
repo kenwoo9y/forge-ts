@@ -1,0 +1,27 @@
+pre-commit:
+  parallel: true
+  commands:
+    biome-check:
+      run: pnpm biome check .
+    yaml-format:
+      glob: "*.{yml,yaml}"
+      run: pnpm exec prettier --write {staged_files}
+    secret-scan:
+      run: git secrets --scan
+    spell-check:
+      glob: "*.{ts,tsx,js,jsx,json,md,yml,yaml}"
+      run: pnpm exec cspell --no-progress --no-summary --no-must-find-files {staged_files}
+
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}
+
+pre-push:
+  commands:
+    unused-check:
+      run: pnpm run unused-check
+    dependency-check:
+      run: pnpm run dependency-check
+    type-check:
+      run: pnpm run type-check

@@ -1,0 +1,67 @@
+{
+  "name": "Forge TS",
+  "dockerComposeFile": ["compose.yaml", "compose.override.yaml"],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "biomejs.biome",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+        "github.copilot",
+        "github.copilot-chat",
+        "GitHub.vscode-pull-request-github"
+      ],
+      "settings": {
+        "js/ts.preferences.includePackageJsonAutoImports": "on",
+        "js/ts.suggest.autoImports": true,
+        "js/ts.updateImportsOnFileMove.enabled": "always",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit",
+          "source.organizeImports": "explicit"
+        },
+        "files.associations": {
+          "*.ts": "typescript",
+          "*.tsx": "typescriptreact",
+          "*.js": "javascript",
+          "*.jsx": "javascriptreact"
+        }
+      }
+    }
+  },
+  "remoteUser": "node",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
+  },
+  "postCreateCommand": "node_modules/.bin/lefthook install || true && git clone https://github.com/awslabs/git-secrets.git /tmp/git-secrets && (cd /tmp/git-secrets && sudo make install) && sudo chmod 755 \"$(command -v git-secrets || echo /usr/local/bin/git-secrets)\" || true && rm -rf /tmp/git-secrets",
+  "postStartCommand": "sudo chown root:docker /var/run/docker.sock && sudo chmod 660 /var/run/docker.sock || true && pnpm run type-check",
+  "forwardPorts": [3000, 3001, 8081, 5432],
+  "portsAttributes": {
+    "3000": {
+      "label": "Hono API Server",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Next.js Web App",
+      "onAutoForward": "notify"
+    },
+    "8081": {
+      "label": "React Native Expo",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL Database",
+      "onAutoForward": "notify"
+    }
+  }
+}

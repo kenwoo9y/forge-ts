@@ -1,0 +1,23 @@
+{
+  "ignoreDependencies": [
+    "pino-pretty",
+    "@babel/core",
+    "ts-node",
+    "@prisma/client",
+    "lefthook",
+    "@commitlint/cli"
+  ],
+  "workspaces": {
+    "apps/web": {
+      "entry": ["webpack.dependency-cruiser.cjs"]
+    },
+    "apps/mobile": {
+      "metro": false,
+      "entry": ["metro.config.js", "postcss.config.js", "webpack.dependency-cruiser.cjs"],
+      "ignoreDependencies": ["react-native-css-interop"]
+    },
+    "infra": {
+      "entry": ["bin/infra.ts"]
+    }
+  }
+}

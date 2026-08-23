@@ -1,0 +1,10 @@
+*.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# CDK context cache (may contain account IDs, VPC IDs, etc.)
+cdk.context.json
