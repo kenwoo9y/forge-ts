@@ -1,7 +1,7 @@
 "use client";
 
 import { signupSchema } from "auth";
-import { Lock, Mail, User, UserPlus } from "lucide-react";
+import { Lock, User, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -73,29 +73,6 @@ export default function SignupPage() {
             </div>
             {errors.username && (
               <p className="text-xs text-red-500">{errors.username.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              メールアドレス{" "}
-              <span className="text-gray-400 font-normal">(任意)</span>
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-              <input
-                id="email"
-                type="email"
-                placeholder="メールアドレスを入力"
-                {...register("email")}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
-              />
-            </div>
-            {errors.email && (
-              <p className="text-xs text-red-500">{errors.email.message}</p>
             )}
           </div>
 

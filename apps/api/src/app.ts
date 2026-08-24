@@ -7,8 +7,6 @@ import { cors } from 'hono/cors';
 import { pinoLogger } from 'hono-pino';
 import { SignInUseCase } from './application/auth/signInUseCase.js';
 import { CreateUserUseCase } from './application/user/command/createUserUseCase.js';
-import { DeleteUserUseCase } from './application/user/command/deleteUserUseCase.js';
-import { UpdateUserUseCase } from './application/user/command/updateUserUseCase.js';
 import { GetUserUseCase } from './application/user/query/getUserUseCase.js';
 import { logger } from './infrastructure/logger/index.js';
 import { PrismaUserQueryService } from './infrastructure/prisma/user/prismaUserQueryService.js';
@@ -39,8 +37,6 @@ const prisma = new PrismaClient({ adapter });
 // User - Command side
 const userRepository = new PrismaUserRepository(prisma);
 const createUserUseCase = new CreateUserUseCase(userRepository);
-const updateUserUseCase = new UpdateUserUseCase(userRepository);
-const deleteUserUseCase = new DeleteUserUseCase(userRepository);
 
 // User - Query side
 const userQueryService = new PrismaUserQueryService(prisma);
@@ -84,15 +80,9 @@ app.get('/', (c) => {
 
 // Chained (rather than repeated app.route() calls) so the merged route
 // types are captured for the Hono RPC client (see AppType below).
-const routes = app.route('/', createAuthRoutes({ signInUseCase })).route(
-  '/',
-  createUserRoutes({
-    createUserUseCase,
-    getUserUseCase,
-    updateUserUseCase,
-    deleteUserUseCase,
-  })
-);
+const routes = app
+  .route('/', createAuthRoutes({ signInUseCase }))
+  .route('/', createUserRoutes({ createUserUseCase, getUserUseCase }));
 
 app.doc('/openapi.json', {
   openapi: '3.1.0',

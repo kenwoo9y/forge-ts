@@ -8,20 +8,13 @@ describe('User API (integration)', () => {
       const res = await app.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'alice',
-          email: 'alice@example.com',
-          password: 'password123',
-        }),
+        body: JSON.stringify({ username: 'alice', password: 'password123' }),
       });
 
       expect(res.status).toBe(201);
       const body = await res.json();
       expect(body).toEqual({
         username: 'alice',
-        email: 'alice@example.com',
-        firstName: null,
-        lastName: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
       });
@@ -44,32 +37,6 @@ describe('User API (integration)', () => {
       const body = await res.json();
       expect(body.code).toBe(ErrorCode.USERNAME_DUPLICATE);
     });
-
-    it('メールアドレスが重複する場合：409を返す', async () => {
-      await app.request('/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'alice',
-          email: 'shared@example.com',
-          password: 'password123',
-        }),
-      });
-
-      const res = await app.request('/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: 'bob',
-          email: 'shared@example.com',
-          password: 'password123',
-        }),
-      });
-
-      expect(res.status).toBe(409);
-      const body = await res.json();
-      expect(body.code).toBe(ErrorCode.EMAIL_DUPLICATE);
-    });
   });
 
   describe('GET /users/:username', () => {
@@ -89,66 +56,6 @@ describe('User API (integration)', () => {
 
     it('ユーザーが存在しない場合：404を返す', async () => {
       const res = await app.request('/users/nobody');
-
-      expect(res.status).toBe(404);
-      const body = await res.json();
-      expect(body.code).toBe(ErrorCode.USER_NOT_FOUND);
-    });
-  });
-
-  describe('PATCH /users/:username', () => {
-    it('ユーザーが存在する場合：更新後の情報を返し、DBにも反映される', async () => {
-      await app.request('/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'alice', password: 'password123' }),
-      });
-
-      const res = await app.request('/users/alice', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName: 'Alice' }),
-      });
-
-      expect(res.status).toBe(200);
-      const body = await res.json();
-      expect(body.firstName).toBe('Alice');
-
-      const getRes = await app.request('/users/alice');
-      const getBody = await getRes.json();
-      expect(getBody.firstName).toBe('Alice');
-    });
-
-    it('存在しないユーザーの場合：404を返す', async () => {
-      const res = await app.request('/users/nobody', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName: 'x' }),
-      });
-
-      expect(res.status).toBe(404);
-      const body = await res.json();
-      expect(body.code).toBe(ErrorCode.USER_NOT_FOUND);
-    });
-  });
-
-  describe('DELETE /users/:username', () => {
-    it('ユーザーが存在する場合：204を返し、DBから削除される', async () => {
-      await app.request('/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'alice', password: 'password123' }),
-      });
-
-      const res = await app.request('/users/alice', { method: 'DELETE' });
-      expect(res.status).toBe(204);
-
-      const getRes = await app.request('/users/alice');
-      expect(getRes.status).toBe(404);
-    });
-
-    it('存在しないユーザーの場合：404を返す', async () => {
-      const res = await app.request('/users/nobody', { method: 'DELETE' });
 
       expect(res.status).toBe(404);
       const body = await res.json();

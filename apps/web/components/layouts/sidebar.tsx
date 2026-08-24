@@ -1,10 +1,7 @@
-import { House, Settings, X } from "lucide-react";
+import { House, X } from "lucide-react";
 import Link from "next/link";
 
-const NAV_ITEMS = [
-  { href: "/", label: "ホーム", icon: House },
-  { href: "/settings", label: "設定", icon: Settings },
-];
+const NAV_ITEMS = [{ href: "/", label: "ホーム", icon: House }];
 
 type SidebarProps = {
   isOpen: boolean;

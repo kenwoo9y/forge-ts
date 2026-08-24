@@ -2,7 +2,6 @@ const errorMessages: Record<string, string> = {
   INVALID_CREDENTIALS: 'ユーザー名またはパスワードが正しくありません',
   USERNAME_REQUIRED: 'ユーザー名は必須です',
   USERNAME_DUPLICATE: 'このユーザー名はすでに使用されています',
-  EMAIL_DUPLICATE: 'このメールアドレスはすでに使用されています',
   USER_NOT_FOUND: 'ユーザーが見つかりません',
   INTERNAL_SERVER_ERROR: '予期しないエラーが発生しました',
 };

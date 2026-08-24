@@ -27,9 +27,6 @@ export class PrismaUserQueryService implements IUserQueryService {
     return {
       id: found.id,
       username: found.username,
-      email: found.email,
-      firstName: found.firstName,
-      lastName: found.lastName,
       createdAt: found.createdAt,
       updatedAt: found.updatedAt,
     };

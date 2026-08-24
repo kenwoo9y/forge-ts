@@ -5,9 +5,6 @@ import { apiClient, unwrap } from "@/lib/hono-client";
 
 type UserResponse = {
   username: string;
-  email: string | null;
-  firstName: string | null;
-  lastName: string | null;
   createdAt: string;
   updatedAt: string;
 };

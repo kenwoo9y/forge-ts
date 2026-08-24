@@ -10,13 +10,6 @@ export const signupSchema = z.object({
     .string()
     .min(1, 'ユーザー名を入力してください')
     .max(30, 'ユーザー名は30文字以内で入力してください'),
-  email: z.preprocess(
-    (val) => (val === '' ? undefined : val),
-    z
-      .email('有効なメールアドレスを入力してください')
-      .max(80, 'メールアドレスは80文字以内で入力してください')
-      .optional()
-  ),
   password: passwordSchema,
 });
 

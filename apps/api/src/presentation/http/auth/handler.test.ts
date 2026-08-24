@@ -14,9 +14,6 @@ const now = new Date('2025-01-01T00:00:00.000Z');
 const mockUserRepository: IUserRepository = {
   save: vi.fn(),
   findByUsername: vi.fn(),
-  findByEmail: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
 };
 
 function createApp() {
@@ -42,7 +39,7 @@ describe('Auth Endpoints', () => {
     it('正しい認証情報の場合：200を返しtokenとusernameが含まれる', async () => {
       const passwordHash = hashSync('password123', 10);
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
-        new User(BigInt(1), Username.create('testuser'), null, null, null, passwordHash, now, now)
+        new User(BigInt(1), Username.create('testuser'), passwordHash, now, now)
       );
 
       const res = await app.request('/auth/signin', {
@@ -74,7 +71,7 @@ describe('Auth Endpoints', () => {
     it('パスワードが誤っている場合：401を返しエラーメッセージが含まれる', async () => {
       const passwordHash = hashSync('password123', 10);
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
-        new User(BigInt(1), Username.create('testuser'), null, null, null, passwordHash, now, now)
+        new User(BigInt(1), Username.create('testuser'), passwordHash, now, now)
       );
 
       const res = await app.request('/auth/signin', {
@@ -90,7 +87,7 @@ describe('Auth Endpoints', () => {
 
     it('passwordHashがnullのユーザーの場合：401を返す', async () => {
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
-        new User(BigInt(1), Username.create('testuser'), null, null, null, null, now, now)
+        new User(BigInt(1), Username.create('testuser'), null, now, now)
       );
 
       const res = await app.request('/auth/signin', {

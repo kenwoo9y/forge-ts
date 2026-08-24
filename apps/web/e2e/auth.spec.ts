@@ -65,7 +65,6 @@ test.describe("アカウント作成ページ", () => {
       page.getByRole("heading", { name: "アカウント作成" }),
     ).toBeVisible();
     await expect(page.locator("#username")).toBeVisible();
-    await expect(page.locator("#email")).toBeVisible();
     await expect(page.locator("#password")).toBeVisible();
     await expect(page.locator("#confirmPassword")).toBeVisible();
     await expect(
@@ -94,14 +93,6 @@ test.describe("認証保護", () => {
     page,
   }) => {
     await page.goto("/");
-
-    await expect(page).toHaveURL(/\/signin/);
-  });
-
-  test("未認証で設定ページにアクセスするとログインページにリダイレクトされる", async ({
-    page,
-  }) => {
-    await page.goto("/settings");
 
     await expect(page).toHaveURL(/\/signin/);
   });

@@ -10,16 +10,3 @@ export class UsernameDuplicateError extends Error {
     this.name = 'UsernameDuplicateError';
   }
 }
-
-/**
- * メールアドレスが既に使用されている場合にスローされるエラー。
- */
-export class EmailDuplicateError extends Error {
-  /**
-   * @param email 重複したメールアドレス
-   */
-  constructor(email: string) {
-    super(`Email '${email}' is already taken`);
-    this.name = 'EmailDuplicateError';
-  }
-}

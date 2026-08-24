@@ -1,6 +1,1 @@
-export {
-  type CreateUserInput,
-  createUserSchema,
-  type UpdateUserInput,
-  updateUserSchema,
-} from './user.js';
+export { type CreateUserInput, createUserSchema } from './user.js';
