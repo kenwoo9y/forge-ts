@@ -95,7 +95,6 @@ pnpm test:e2e:debug  # デバッグモードで実行（ステップ実行）
 |---|---|
 | `e2e/global.setup.ts` | 認証セットアップ（ログイン状態を保存） |
 | `e2e/auth.spec.ts` | 認証フロー（ログイン・アカウント作成・アクセス保護） |
-| `e2e/todos.spec.ts` | Todo の CRUD 操作・詳細ページ |
 
 ### トラブルシューティング
 

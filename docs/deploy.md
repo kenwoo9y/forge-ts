@@ -203,21 +203,6 @@ flowchart TD
 
 CI 通過の保証はワークフロー内ではなく GitHub の **Required status checks**（ブランチ保護ルール）で行う。`infra-deploy.yaml` と `concurrency` グループ（`infra-app-deploy-lock`）を共有しており、CDKによるインフラ更新中はキャンセルされず待機する。
 
-### 処理フロー
-
-```
-approve（GitHub Environment main 承認）
-  └─ build-push-scan (api)
-     build-push-scan (web)  ← 並列実行
-```
-
-### ジョブ一覧
-
-| ジョブ | 内容 |
-|---|---|
-| `approve` | GitHub Environment `main` の承認ゲート（`infra-deploy.yaml` と同様） |
-| `build-push-scan` | `approve` 完了後、OIDC 認証 → Docker ビルド → ECR push → スキャン結果確認（api / web の matrix） |
-
 ### ECR push とスキャンゲート
 
 - `:${GITHUB_SHA}` と `:latest` の 2 タグを push する
@@ -240,12 +225,6 @@ approve（GitHub Environment main 承認）
 `main` ブランチへの push（PR マージ）で `infra/**` に変更があった場合に起動するワークフロー。GitHub Environment（`main`）の承認ゲートを経てから OIDC 認証で AWS に接続し、CDK スタックを自動デプロイする。`app-deploy.yaml` と `concurrency` グループ（`infra-app-deploy-lock`）を共有しており、アプリのビルド・デプロイ中はキャンセルされず待機する。
 
 CodePipeline + CodeStar Connections を使わず GitHub Actions + OIDC に統一することで、すべての CI/CD をコードで管理し手動セットアップを排除している。
-
-### 処理フロー
-
-1. AWS OIDC 認証（`main` Environment にスコープされた IAM ロール）
-2. `npx cdk synth --no-notices`
-3. `npx cdk deploy --all --require-approval never --no-notices`
 
 ### 承認ゲート
 
