@@ -273,10 +273,10 @@ CDK デプロイ直後や GitHub Actions ワークフローを使用せずに手
 
 ### 1. 環境変数の設定
 
-`.env.template` をコピーして値を設定後、読み込む。
+`.env.example` をコピーして値を設定後、読み込む。
 
 ```bash
-cp .env.template .env
+cp .env.example .env
 # .env を編集して AWS_REGION, AWS_ACCOUNT_ID, IMAGE_TAG を設定
 set -a && source .env && set +a
 ```
