@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { createTaskSchema, createUserSchema, taskStatusEnum, updateUserSchema } from 'schema';
+import { createUserSchema, updateUserSchema } from 'schema';
 import { createUserHandler, type UserHandlerDeps } from './handler.js';
 
 const userResponseSchema = z.object({
@@ -7,17 +7,6 @@ const userResponseSchema = z.object({
   email: z.string().nullable(),
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-const taskResponseSchema = z.object({
-  publicId: z.string(),
-  title: z.string(),
-  description: z.string().nullable(),
-  dueDate: z.string().nullable(),
-  status: taskStatusEnum,
-  ownerId: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -160,73 +149,6 @@ const deleteUserRoute = createRoute({
   },
 });
 
-const getUserTasksRoute = createRoute({
-  method: 'get',
-  path: '/users/{username}/tasks',
-  tags: ['User'],
-  summary: "Get a user's tasks",
-  request: {
-    params: z.object({
-      username: z.string(),
-    }),
-  },
-  responses: {
-    200: {
-      description: 'Tasks found',
-      content: {
-        'application/json': {
-          schema: z.array(taskResponseSchema),
-        },
-      },
-    },
-    404: {
-      description: 'User not found',
-      content: {
-        'application/json': {
-          schema: errorResponseSchema,
-        },
-      },
-    },
-  },
-});
-
-const createUserTaskRoute = createRoute({
-  method: 'post',
-  path: '/users/{username}/tasks',
-  tags: ['User'],
-  summary: 'Create a task for a user',
-  request: {
-    params: z.object({
-      username: z.string(),
-    }),
-    body: {
-      content: {
-        'application/json': {
-          schema: createTaskSchema.omit({ ownerId: true }),
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      description: 'Task created',
-      content: {
-        'application/json': {
-          schema: taskResponseSchema,
-        },
-      },
-    },
-    404: {
-      description: 'User not found',
-      content: {
-        'application/json': {
-          schema: errorResponseSchema,
-        },
-      },
-    },
-  },
-});
-
 export function createUserRoutes(deps: UserHandlerDeps) {
   const handler = createUserHandler(deps);
 
@@ -234,7 +156,5 @@ export function createUserRoutes(deps: UserHandlerDeps) {
     .openapi(createUserRoute, handler.createUser as never)
     .openapi(getUserRoute, handler.getUser as never)
     .openapi(updateUserRoute, handler.updateUser as never)
-    .openapi(deleteUserRoute, handler.deleteUser as never)
-    .openapi(getUserTasksRoute, handler.getUserTasks as never)
-    .openapi(createUserTaskRoute, handler.createUserTask as never);
+    .openapi(deleteUserRoute, handler.deleteUser as never);
 }

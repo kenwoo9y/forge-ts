@@ -47,7 +47,7 @@ export default function SigninScreen() {
       const [token, username] = await Promise.all([storage.getToken(), storage.getUsername()]);
       if (token && username) {
         setAuth(token, username);
-        router.replace('/(app)/todos');
+        router.replace('/(app)');
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : '予期しないエラーが発生しました');

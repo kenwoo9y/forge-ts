@@ -1,9 +1,8 @@
-import { House, LayoutList, Settings, X } from "lucide-react";
+import { House, Settings, X } from "lucide-react";
 import Link from "next/link";
 
 const NAV_ITEMS = [
   { href: "/", label: "ホーム", icon: House },
-  { href: "/todos", label: "ToDoリスト", icon: LayoutList },
   { href: "/settings", label: "設定", icon: Settings },
 ];
 

@@ -41,9 +41,9 @@ export default function AppLayout() {
       }}
     >
       <Stack.Screen
-        name="todos/index"
+        name="index"
         options={{
-          title: 'ToDoリスト',
+          title: 'ホーム',
           headerRight: () => (
             <TouchableOpacity
               onPress={handleLogout}
@@ -54,7 +54,6 @@ export default function AppLayout() {
           ),
         }}
       />
-      <Stack.Screen name="todos/[publicId]" options={{ title: 'ToDo詳細' }} />
     </Stack>
   );
 }

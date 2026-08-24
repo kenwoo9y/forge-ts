@@ -29,7 +29,7 @@ export default function SigninPage() {
     if (result?.error) {
       setError("ユーザー名またはパスワードが正しくありません");
     } else {
-      window.location.assign("/todos");
+      window.location.assign("/");
     }
   }
 

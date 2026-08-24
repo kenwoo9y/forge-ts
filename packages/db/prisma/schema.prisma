@@ -24,25 +24,5 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  // 関連
-  tasks Task[]
-
   @@map("users")
-}
-
-model Task {
-  id          BigInt    @id @default(autoincrement())
-  publicId    String    @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
-  title       String    @db.VarChar(30)
-  description String?   @db.VarChar(255)
-  dueDate     DateTime? @map("due_date") @db.Date
-  status      String    @default("todo") @db.VarChar(10)
-  ownerId     BigInt    @map("owner_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  // 外部キー関連
-  owner User  @relation(fields: [ownerId], references: [id])
-
-  @@map("tasks")
 }

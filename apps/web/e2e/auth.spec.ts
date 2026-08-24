@@ -16,17 +16,15 @@ test.describe("ログインページ", () => {
     await expect(page.getByRole("button", { name: "ログイン" })).toBeVisible();
   });
 
-  test("正しい認証情報でログインするとToDoリストにリダイレクトされる", async ({
+  test("正しい認証情報でログインするとホームにリダイレクトされる", async ({
     page,
   }) => {
     await page.fill("#username", E2E_USERNAME);
     await page.fill("#password", E2E_PASSWORD);
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL("/todos");
-    await expect(
-      page.getByRole("heading", { name: "ToDoリスト" }),
-    ).toBeVisible();
+    await expect(page).toHaveURL("/");
+    await expect(page.getByRole("heading", { name: "ホーム" })).toBeVisible();
   });
 
   test("誤った認証情報でログインするとエラーメッセージが表示される", async ({
@@ -92,10 +90,10 @@ test.describe("アカウント作成ページ", () => {
 });
 
 test.describe("認証保護", () => {
-  test("未認証でToDoリストにアクセスするとログインページにリダイレクトされる", async ({
+  test("未認証でホームにアクセスするとログインページにリダイレクトされる", async ({
     page,
   }) => {
-    await page.goto("/todos");
+    await page.goto("/");
 
     await expect(page).toHaveURL(/\/signin/);
   });

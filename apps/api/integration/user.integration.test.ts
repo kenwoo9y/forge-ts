@@ -1,7 +1,6 @@
 import { ErrorCode } from 'error';
 import { describe, expect, it } from 'vitest';
 import { app } from '../src/app.js';
-import { signUpAndSignIn } from './testAuth.js';
 
 describe('User API (integration)', () => {
   describe('POST /users', () => {
@@ -150,58 +149,6 @@ describe('User API (integration)', () => {
 
     it('存在しないユーザーの場合：404を返す', async () => {
       const res = await app.request('/users/nobody', { method: 'DELETE' });
-
-      expect(res.status).toBe(404);
-      const body = await res.json();
-      expect(body.code).toBe(ErrorCode.USER_NOT_FOUND);
-    });
-  });
-
-  describe('GET/POST /users/:username/tasks（JWT保護）', () => {
-    it('トークンなしでアクセスすると401を返す', async () => {
-      await app.request('/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'alice', password: 'password123' }),
-      });
-
-      const res = await app.request('/users/alice/tasks');
-
-      expect(res.status).toBe(401);
-    });
-
-    it('有効なトークンでタスクを作成し、一覧取得できる', async () => {
-      const token = await signUpAndSignIn(app, 'alice');
-      const authHeaders = {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      };
-
-      const createRes = await app.request('/users/alice/tasks', {
-        method: 'POST',
-        headers: authHeaders,
-        body: JSON.stringify({ title: 'Buy milk', status: 'todo' }),
-      });
-      expect(createRes.status).toBe(201);
-      const created = await createRes.json();
-      expect(created.title).toBe('Buy milk');
-      expect(created.publicId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-      );
-
-      const listRes = await app.request('/users/alice/tasks', { headers: authHeaders });
-      expect(listRes.status).toBe(200);
-      const list = await listRes.json();
-      expect(list).toHaveLength(1);
-      expect(list[0].publicId).toBe(created.publicId);
-    });
-
-    it('存在しないユーザーの場合：404を返す', async () => {
-      const token = await signUpAndSignIn(app, 'alice');
-
-      const res = await app.request('/users/nobody/tasks', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
 
       expect(res.status).toBe(404);
       const body = await res.json();

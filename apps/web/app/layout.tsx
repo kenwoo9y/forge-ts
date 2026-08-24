@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "ToDoアプリケーション",
+  title: "アプリケーション",
   description: "サンプルアプリケーション",
 };
 

@@ -2,18 +2,11 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { ErrorCode } from 'error';
 import type { Context } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CreateTaskByUsernameUseCase } from '../../../application/task/command/createTaskByUsernameUseCase.js';
-import { CreateTaskUseCase } from '../../../application/task/command/createTaskUseCase.js';
-import { GetTasksByUsernameUseCase } from '../../../application/task/query/getTasksByUsernameUseCase.js';
-import type { ITaskQueryService } from '../../../application/task/query/queryService.js';
 import { CreateUserUseCase } from '../../../application/user/command/createUserUseCase.js';
 import { DeleteUserUseCase } from '../../../application/user/command/deleteUserUseCase.js';
 import { UpdateUserUseCase } from '../../../application/user/command/updateUserUseCase.js';
 import { GetUserUseCase } from '../../../application/user/query/getUserUseCase.js';
 import type { IUserQueryService } from '../../../application/user/query/queryService.js';
-import { Task } from '../../../domain/task/entity.js';
-import type { ITaskRepository } from '../../../domain/task/repository.js';
-import { TaskStatus } from '../../../domain/task/value/taskStatus.js';
 import { User } from '../../../domain/user/entity.js';
 import type { IUserRepository } from '../../../domain/user/repository.js';
 import { Email } from '../../../domain/user/value/email.js';
@@ -35,17 +28,6 @@ const mockUserQueryService: IUserQueryService = {
   findByUsername: vi.fn(),
 };
 
-const mockTaskQueryService: ITaskQueryService = {
-  findByPublicId: vi.fn(),
-  findByOwnerId: vi.fn(),
-};
-
-const mockTaskRepository: ITaskRepository = {
-  save: vi.fn(),
-  update: vi.fn(),
-  delete: vi.fn(),
-};
-
 function createApp() {
   const app = new OpenAPIHono();
   app.route(
@@ -55,14 +37,6 @@ function createApp() {
       getUserUseCase: new GetUserUseCase(mockUserQueryService),
       updateUserUseCase: new UpdateUserUseCase(mockUserRepository),
       deleteUserUseCase: new DeleteUserUseCase(mockUserRepository),
-      getTasksByUsernameUseCase: new GetTasksByUsernameUseCase(
-        mockTaskQueryService,
-        mockUserQueryService
-      ),
-      createTaskByUsernameUseCase: new CreateTaskByUsernameUseCase(
-        new CreateTaskUseCase(mockTaskRepository),
-        mockUserQueryService
-      ),
     })
   );
   return app;
@@ -526,180 +500,6 @@ describe('User Endpoints', () => {
       expect(res.status).toBe(500);
     });
   });
-
-  describe('GET /users/:username/tasks', () => {
-    it('ユーザーがタスクを持つ場合：200を返しタスク一覧を取得できる', async () => {
-      vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue({
-        id: BigInt(1),
-        username: 'testuser',
-        email: null,
-        firstName: null,
-        lastName: null,
-        createdAt: now,
-        updatedAt: now,
-      });
-      vi.mocked(mockTaskQueryService.findByOwnerId).mockResolvedValue([
-        {
-          publicId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          title: 'Task 1',
-          description: null,
-          dueDate: null,
-          status: 'todo',
-          ownerId: BigInt(1),
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          publicId: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-          title: 'Task 2',
-          description: 'Description',
-          dueDate: now,
-          status: 'done',
-          ownerId: BigInt(1),
-          createdAt: now,
-          updatedAt: now,
-        },
-      ]);
-
-      const res = await app.request('/users/testuser/tasks');
-
-      expect(res.status).toBe(200);
-      const body = await res.json();
-      expect(body).toHaveLength(2);
-      expect(body[0].publicId).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
-      expect(body[1].publicId).toBe('b2c3d4e5-f6a7-8901-bcde-f12345678901');
-      expect(body[1].ownerId).toBe('1');
-    });
-
-    it('タスクがない場合：200を返し空配列を取得できる', async () => {
-      vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue({
-        id: BigInt(1),
-        username: 'testuser',
-        email: null,
-        firstName: null,
-        lastName: null,
-        createdAt: now,
-        updatedAt: now,
-      });
-      vi.mocked(mockTaskQueryService.findByOwnerId).mockResolvedValue([]);
-
-      const res = await app.request('/users/testuser/tasks');
-
-      expect(res.status).toBe(200);
-      const body = await res.json();
-      expect(body).toEqual([]);
-    });
-
-    it('ユーザーが存在しない場合：404を返す', async () => {
-      vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue(null);
-
-      const res = await app.request('/users/nonexistent/tasks');
-
-      expect(res.status).toBe(404);
-      const body = await res.json();
-      expect(body.code).toBe(ErrorCode.USER_NOT_FOUND);
-    });
-  });
-
-  describe('POST /users/:username/tasks', () => {
-    it('全フィールドを指定してタスクを作成する場合：201を返しタスク情報が正しい', async () => {
-      vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue({
-        id: BigInt(1),
-        username: 'testuser',
-        email: null,
-        firstName: null,
-        lastName: null,
-        createdAt: now,
-        updatedAt: now,
-      });
-      vi.mocked(mockTaskRepository.save).mockResolvedValue(
-        new Task(
-          BigInt(1),
-          'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          'Test Task',
-          'Description',
-          now,
-          TaskStatus.create('todo'),
-          BigInt(1),
-          now,
-          now
-        )
-      );
-
-      const res = await app.request('/users/testuser/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: 'Test Task',
-          description: 'Description',
-          dueDate: '2025-01-01T00:00:00.000Z',
-          status: 'todo',
-        }),
-      });
-
-      expect(res.status).toBe(201);
-      const body = await res.json();
-      expect(body.publicId).toBe('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
-      expect(body.title).toBe('Test Task');
-      expect(body.description).toBe('Description');
-      expect(body.status).toBe('todo');
-      expect(body.ownerId).toBe('1');
-      expect(body.dueDate).toBe('2025-01-01T00:00:00.000Z');
-    });
-
-    it('オプションフィールドを省略してタスクを作成する場合：201を返しオプション項目がnull', async () => {
-      vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue({
-        id: BigInt(1),
-        username: 'testuser',
-        email: null,
-        firstName: null,
-        lastName: null,
-        createdAt: now,
-        updatedAt: now,
-      });
-      vi.mocked(mockTaskRepository.save).mockResolvedValue(
-        new Task(
-          BigInt(1),
-          'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-          'Min Task',
-          null,
-          null,
-          TaskStatus.create('todo'),
-          BigInt(1),
-          now,
-          now
-        )
-      );
-
-      const res = await app.request('/users/testuser/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Min Task', status: 'todo' }),
-      });
-
-      expect(res.status).toBe(201);
-      const body = await res.json();
-      expect(body.title).toBe('Min Task');
-      expect(body.description).toBeNull();
-      expect(body.dueDate).toBeNull();
-      expect(body.status).toBe('todo');
-      expect(body.ownerId).toBe('1');
-    });
-
-    it('ユーザーが存在しない場合：404を返す', async () => {
-      vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue(null);
-
-      const res = await app.request('/users/nonexistent/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'Test Task' }),
-      });
-
-      expect(res.status).toBe(404);
-      const body = await res.json();
-      expect(body.code).toBe(ErrorCode.USER_NOT_FOUND);
-    });
-  });
 });
 
 describe('User Handler ガード節', () => {
@@ -708,8 +508,6 @@ describe('User Handler ガード節', () => {
     getUserUseCase: { execute: vi.fn() },
     updateUserUseCase: { execute: vi.fn() },
     deleteUserUseCase: { execute: vi.fn() },
-    getTasksByUsernameUseCase: { execute: vi.fn() },
-    createTaskByUsernameUseCase: { execute: vi.fn() },
   };
 
   function makeMockContext() {
@@ -737,20 +535,6 @@ describe('User Handler ガード節', () => {
     const handler = createUserHandler(mockDeps);
     const c = makeMockContext();
     await handler.deleteUser(c);
-    expect(c.json).toHaveBeenCalledWith({ code: ErrorCode.USERNAME_REQUIRED }, 400);
-  });
-
-  it('getUserTasks: usernameが未設定の場合：400を返す', async () => {
-    const handler = createUserHandler(mockDeps);
-    const c = makeMockContext();
-    await handler.getUserTasks(c);
-    expect(c.json).toHaveBeenCalledWith({ code: ErrorCode.USERNAME_REQUIRED }, 400);
-  });
-
-  it('createUserTask: usernameが未設定の場合：400を返す', async () => {
-    const handler = createUserHandler(mockDeps);
-    const c = makeMockContext();
-    await handler.createUserTask(c);
     expect(c.json).toHaveBeenCalledWith({ code: ErrorCode.USERNAME_REQUIRED }, 400);
   });
 });

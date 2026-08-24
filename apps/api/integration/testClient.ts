@@ -20,5 +20,5 @@ export const testPrisma = new PrismaClient({ adapter });
  * Prismaのリポジトリ実装は呼び出しごとに別コネクションを使いうるため、トランザクションロールバックではなくテストごとのTRUNCATEで分離する。
  */
 export async function resetDatabase(): Promise<void> {
-  await testPrisma.$executeRawUnsafe('TRUNCATE TABLE "tasks", "users" RESTART IDENTITY CASCADE');
+  await testPrisma.$executeRawUnsafe('TRUNCATE TABLE "users" RESTART IDENTITY CASCADE');
 }

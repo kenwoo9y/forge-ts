@@ -16,7 +16,7 @@ setup("authenticate", async ({ page }) => {
   await page.fill("#password", E2E_PASSWORD);
   await page.click('button[type="submit"]');
 
-  await expect(page).toHaveURL("/todos");
+  await expect(page).toHaveURL("/");
 
   await page.context().storageState({ path: authFile });
 });

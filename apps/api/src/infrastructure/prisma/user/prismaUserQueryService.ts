@@ -25,7 +25,7 @@ export class PrismaUserQueryService implements IUserQueryService {
     });
     if (!found) return null;
     return {
-      id: found.id, // kept for internal use (e.g. task lookup by ownerId)
+      id: found.id,
       username: found.username,
       email: found.email,
       firstName: found.firstName,

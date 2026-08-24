@@ -21,7 +21,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         >
           <Menu className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold">ToDoアプリケーション</span>
+        <span className="text-lg font-bold">アプリケーション</span>
 
         <div className="ml-auto flex items-center gap-3">
           {session?.user?.name && (

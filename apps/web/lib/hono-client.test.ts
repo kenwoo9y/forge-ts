@@ -26,11 +26,11 @@ describe("unwrap", () => {
 
   it("既知のエラーコードの場合：対応する日本語メッセージでエラーをスローする", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
-    const response = new Response(JSON.stringify({ code: "TASK_NOT_FOUND" }), {
+    const response = new Response(JSON.stringify({ code: "USER_NOT_FOUND" }), {
       status: 404,
     });
 
-    await expect(unwrap(response)).rejects.toThrow("ToDoが見つかりません");
+    await expect(unwrap(response)).rejects.toThrow("ユーザーが見つかりません");
   });
 
   it("未知のエラーコードの場合：汎用エラーメッセージでエラーをスローする", async () => {

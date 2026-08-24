@@ -113,8 +113,6 @@ describe('エラーハンドリング', () => {
     ['USERNAME_DUPLICATE', 'このユーザー名はすでに使用されています'],
     ['EMAIL_DUPLICATE', 'このメールアドレスはすでに使用されています'],
     ['USER_NOT_FOUND', 'ユーザーが見つかりません'],
-    ['PUBLIC_ID_REQUIRED', 'IDは必須です'],
-    ['TASK_NOT_FOUND', 'ToDoが見つかりません'],
     ['INTERNAL_SERVER_ERROR', '予期しないエラーが発生しました'],
   ])('エラーコード "%s" の場合："%s" をスローする', async (code, message) => {
     mockFetch.mockResolvedValue(mockResponse({ ok: false, json: () => Promise.resolve({ code }) }));

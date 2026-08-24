@@ -12,5 +12,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/todos/:path*", "/settings/:path*"],
+  matcher: ["/", "/settings/:path*"],
 };
