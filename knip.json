@@ -8,8 +8,12 @@
     "@commitlint/cli"
   ],
   "workspaces": {
+    "apps/api": {
+      "ignore": ["src/infrastructure/auth/jwtMiddleware.ts", "integration/testAuth.ts"]
+    },
     "apps/web": {
-      "entry": ["webpack.dependency-cruiser.cjs"]
+      "entry": ["webpack.dependency-cruiser.cjs"],
+      "ignoreDependencies": ["@tanstack/react-table"]
     },
     "apps/mobile": {
       "metro": false,

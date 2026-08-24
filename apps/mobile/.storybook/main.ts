@@ -60,13 +60,6 @@ const config: StorybookConfig = {
               replacement: resolve(__dirname, './__mocks__/expo-router.ts'),
             },
             {
-              find: '@react-native-community/datetimepicker',
-              replacement: resolve(
-                __dirname,
-                './__mocks__/@react-native-community/datetimepicker.ts'
-              ),
-            },
-            {
               find: 'react-native-safe-area-context',
               replacement: resolve(__dirname, './__mocks__/react-native-safe-area-context.ts'),
             },
