@@ -1,11 +1,11 @@
 import type { app as App } from '../src/app.js';
 
 /**
- * サインアップ・サインインを実APIエンドポイント経由で行い、認証済みリクエストに使うJWTを取得する。
- * @param app テスト対象の実app（`src/app.ts`）
- * @param username サインアップするユーザー名
- * @param password パスワード（省略時はテスト用の固定値）
- * @returns 発行されたJWT
+ * Signs up and signs in via the real API endpoints, and obtains a JWT for use in authenticated requests.
+ * @param app The real app under test (`src/app.ts`)
+ * @param username The username to sign up with
+ * @param password The password (defaults to a fixed value for tests)
+ * @returns The issued JWT
  */
 export async function signUpAndSignIn(
   app: typeof App,

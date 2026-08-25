@@ -1,21 +1,21 @@
-## :link:チケット/Issue
+## :link: Ticket/Issue
 
-<!-- 関連するチケットまたはIssueのリンク -->
-[リンクテキスト](URL)
+<!-- Link to the related ticket or issue -->
+[Link text](URL)
 
-## :memo:変更の目的/背景
+## :memo: Purpose/Background
 
-<!-- なぜこの変更が必要なのか？（チケットやIssueに書かれている場合は省略可） -->
+<!-- Why is this change needed? (Skip if already covered in the ticket/issue) -->
 
-## :hammer:変更内容
+## :hammer: What changed
 
-<!-- このPull Requestで何をしたのか？ -->
-<!-- このPull Requestでやらないことは何か？（あれば。無いなら「無し」でOK。やらない場合は、いつやるのかを明記する。） -->
+<!-- What did this Pull Request do? -->
+<!-- What does this Pull Request NOT do? (If nothing, "None" is fine. If something is deferred, note when it will be done.) -->
 
-## :white_check_mark:動作確認
+## :white_check_mark: Verification
 
-<!-- どのような動作確認を行ったのか？結果はどうか？（またはテストのリンクを貼る） -->
+<!-- What verification did you do, and what were the results? (Or link to tests) -->
 
-## :information_source:その他
+## :information_source: Other
 
-<!-- レビュアーへの参考情報（実装上の懸念点や注意点、補足などあれば記載） -->
+<!-- Anything reviewers should know — implementation concerns, caveats, extra context -->

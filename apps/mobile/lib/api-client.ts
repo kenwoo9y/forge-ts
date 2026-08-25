@@ -1,9 +1,9 @@
 const errorMessages: Record<string, string> = {
-  INVALID_CREDENTIALS: 'ユーザー名またはパスワードが正しくありません',
-  USERNAME_REQUIRED: 'ユーザー名は必須です',
-  USERNAME_DUPLICATE: 'このユーザー名はすでに使用されています',
-  USER_NOT_FOUND: 'ユーザーが見つかりません',
-  INTERNAL_SERVER_ERROR: '予期しないエラーが発生しました',
+  INVALID_CREDENTIALS: 'Incorrect username or password',
+  USERNAME_REQUIRED: 'Username is required',
+  USERNAME_DUPLICATE: 'This username is already taken',
+  USER_NOT_FOUND: 'User not found',
+  INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
 };
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';

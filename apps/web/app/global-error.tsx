@@ -13,11 +13,11 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   }, [error]);
 
   return (
-    <html lang="ja">
+    <html lang="en">
       <body className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="px-6 text-center">
           <h2 className="mb-4 text-xl font-bold text-gray-900">
-            アプリケーションエラー
+            Application error
           </h2>
           <p className="mb-6 text-sm text-gray-500">{error.message}</p>
           <button
@@ -25,7 +25,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             onClick={reset}
             className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
-            再読み込み
+            Reload
           </button>
         </div>
       </body>

@@ -5,19 +5,19 @@ import type {
 } from '../../../application/user/query/queryService.js';
 
 /**
- * Prismaを使ったユーザークエリサービスの実装クラス。
- * `IUserQueryService` インターフェースに従い、読み取り専用のユーザー検索を行う。
+ * Implementation class for the user query service using Prisma.
+ * Performs read-only user lookups in accordance with the `IUserQueryService` interface.
  */
 export class PrismaUserQueryService implements IUserQueryService {
   /**
-   * @param prisma Prismaクライアント
+   * @param prisma The Prisma client
    */
   constructor(private readonly prisma: PrismaClient) {}
 
   /**
-   * ユーザー名でユーザーを取得する。
-   * @param username 検索するユーザー名
-   * @returns 該当するユーザーの読み取りモデル。存在しない場合は `null`
+   * Gets a user by username.
+   * @param username The username to search for
+   * @returns The matching user's read model. `null` if it does not exist
    */
   async findByUsername(username: string): Promise<UserReadModel | null> {
     const found = await this.prisma.user.findUnique({

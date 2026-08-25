@@ -21,13 +21,13 @@ export default function AppLayout() {
     const doLogout = () => clearAuth();
 
     if (Platform.OS === 'web') {
-      if (window.confirm('ログアウトしますか？')) {
+      if (window.confirm('Log out?')) {
         doLogout();
       }
     } else {
-      Alert.alert('ログアウト', 'ログアウトしますか？', [
-        { text: 'キャンセル', style: 'cancel' },
-        { text: 'ログアウト', style: 'destructive', onPress: doLogout },
+      Alert.alert('Log out', 'Log out?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log out', style: 'destructive', onPress: doLogout },
       ]);
     }
   }
@@ -43,13 +43,13 @@ export default function AppLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'ホーム',
+          title: 'Home',
           headerRight: () => (
             <TouchableOpacity
               onPress={handleLogout}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text className="text-white text-sm">ログアウト</Text>
+              <Text className="text-white text-sm">Log out</Text>
             </TouchableOpacity>
           ),
         }}

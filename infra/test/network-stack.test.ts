@@ -8,41 +8,41 @@ describe('NetworkStack', () => {
   const stack = new NetworkStack(app, 'TestNetworkStack');
   const template = Template.fromStack(stack);
 
-  it('VPCが作成される', () => {
+  it('creates a VPC', () => {
     template.resourceCountIs('AWS::EC2::VPC', 1);
   });
 
-  it('パブリックサブネットとプライベートサブネットが2AZ分作成される', () => {
+  it('creates public and private subnets for 2 AZs', () => {
     template.resourceCountIs('AWS::EC2::Subnet', 4);
   });
 
-  it('NATゲートウェイが1つ作成される', () => {
+  it('creates one NAT gateway', () => {
     template.resourceCountIs('AWS::EC2::NatGateway', 1);
   });
 
-  it('インターネットゲートウェイが作成される', () => {
+  it('creates an internet gateway', () => {
     template.resourceCountIs('AWS::EC2::InternetGateway', 1);
   });
 
-  it('ALB用セキュリティグループが作成される', () => {
+  it('creates a security group for the ALB', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroup', {
       GroupDescription: 'Security group for ALB',
     });
   });
 
-  it('ECS用セキュリティグループが作成される', () => {
+  it('creates a security group for ECS', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroup', {
       GroupDescription: 'Security group for ECS Fargate',
     });
   });
 
-  it('RDS用セキュリティグループが作成される', () => {
+  it('creates a security group for RDS', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroup', {
       GroupDescription: 'Security group for RDS PostgreSQL',
     });
   });
 
-  it('ALBセキュリティグループがHTTP(80)を許可する', () => {
+  it('the ALB security group allows HTTP(80)', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroup', {
       GroupDescription: 'Security group for ALB',
       SecurityGroupIngress: Match.arrayWith([
@@ -56,7 +56,7 @@ describe('NetworkStack', () => {
     });
   });
 
-  it('ALBセキュリティグループがHTTPS(443)を許可する', () => {
+  it('the ALB security group allows HTTPS(443)', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroup', {
       GroupDescription: 'Security group for ALB',
       SecurityGroupIngress: Match.arrayWith([
@@ -70,7 +70,7 @@ describe('NetworkStack', () => {
     });
   });
 
-  it('ECSセキュリティグループがALBからのポート3000を許可する', () => {
+  it('the ECS security group allows port 3000 from the ALB', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroupIngress', {
       FromPort: 3000,
       ToPort: 3000,
@@ -78,7 +78,7 @@ describe('NetworkStack', () => {
     });
   });
 
-  it('RDSセキュリティグループがECSからのPostgreSQL(5432)を許可する', () => {
+  it('the RDS security group allows PostgreSQL(5432) from ECS', () => {
     template.hasResourceProperties('AWS::EC2::SecurityGroupIngress', {
       FromPort: 5432,
       ToPort: 5432,
@@ -86,7 +86,7 @@ describe('NetworkStack', () => {
     });
   });
 
-  it('S3のGatewayエンドポイントが作成される', () => {
+  it('creates an S3 Gateway endpoint', () => {
     template.resourceCountIs('AWS::EC2::VPCEndpoint', 1);
     template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
       VpcEndpointType: 'Gateway',
@@ -94,18 +94,19 @@ describe('NetworkStack', () => {
     });
   });
 
-  it('enableVpcEndpoints未指定時はInterfaceエンドポイントが作成されない', () => {
+  it('does not create Interface endpoints when enableVpcEndpoints is unspecified', () => {
     template.resourceCountIs('AWS::EC2::VPCEndpoint', 1);
   });
 
-  it('デフォルトでは2AZ分のパブリック/プライベートサブネットが作成される', () => {
+  it('creates public/private subnets for 2 AZs by default', () => {
     template.resourceCountIs('AWS::EC2::Subnet', 4);
   });
 });
 
-describe('NetworkStack（maxAzs指定）', () => {
-  // 環境非依存スタックはAZルックアップができずデフォルト2AZに固定されるため、
-  // maxAzs=3を実際に反映させるにはcontextにAZ一覧を事前投入した具体的なenvが必要
+describe('NetworkStack (maxAzs specified)', () => {
+  // An environment-agnostic stack can't do an AZ lookup and is pinned to the default 2 AZs,
+  // so making maxAzs=3 actually take effect requires a concrete env with an AZ list
+  // pre-populated in context
   const app = new cdk.App({
     context: {
       'availability-zones:account=999999999999:region=ap-northeast-1': [
@@ -121,44 +122,44 @@ describe('NetworkStack（maxAzs指定）', () => {
   });
   const template = Template.fromStack(stack);
 
-  it('maxAzsで指定したAZ数分のサブネットが作成される（3AZ x 2種類 = 6）', () => {
+  it('creates subnets for the AZ count specified by maxAzs (3 AZs x 2 types = 6)', () => {
     template.resourceCountIs('AWS::EC2::Subnet', 6);
   });
 });
 
-describe('NetworkStack（enableVpcEndpoints指定）', () => {
+describe('NetworkStack (enableVpcEndpoints specified)', () => {
   const app = new cdk.App();
   const stack = new NetworkStack(app, 'TestNetworkStackEndpoints', {
     enableVpcEndpoints: true,
   });
   const template = Template.fromStack(stack);
 
-  it('Gateway(S3)とInterface(ECR API/ECR Docker/Secrets Manager/CloudWatch Logs)の計5つのVPCエンドポイントが作成される', () => {
+  it('creates 5 VPC endpoints total: Gateway (S3) and Interface (ECR API/ECR Docker/Secrets Manager/CloudWatch Logs)', () => {
     template.resourceCountIs('AWS::EC2::VPCEndpoint', 5);
   });
 
-  it('Interfaceエンドポイントが4つ作成される', () => {
+  it('creates 4 Interface endpoints', () => {
     const endpoints = template.findResources('AWS::EC2::VPCEndpoint', {
       Properties: { VpcEndpointType: 'Interface' },
     });
     expect(Object.keys(endpoints).length).toBe(4);
   });
 
-  it('ECR API用のInterfaceエンドポイントが作成される', () => {
+  it('creates an Interface endpoint for ECR API', () => {
     template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
       VpcEndpointType: 'Interface',
       ServiceName: { 'Fn::Join': ['', Match.arrayWith([Match.stringLikeRegexp('\\.ecr\\.api$')])] },
     });
   });
 
-  it('ECR Docker用のInterfaceエンドポイントが作成される', () => {
+  it('creates an Interface endpoint for ECR Docker', () => {
     template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
       VpcEndpointType: 'Interface',
       ServiceName: { 'Fn::Join': ['', Match.arrayWith([Match.stringLikeRegexp('\\.ecr\\.dkr$')])] },
     });
   });
 
-  it('Secrets Manager用のInterfaceエンドポイントが作成される', () => {
+  it('creates an Interface endpoint for Secrets Manager', () => {
     template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
       VpcEndpointType: 'Interface',
       ServiceName: {
@@ -167,14 +168,14 @@ describe('NetworkStack（enableVpcEndpoints指定）', () => {
     });
   });
 
-  it('CloudWatch Logs用のInterfaceエンドポイントが作成される', () => {
+  it('creates an Interface endpoint for CloudWatch Logs', () => {
     template.hasResourceProperties('AWS::EC2::VPCEndpoint', {
       VpcEndpointType: 'Interface',
       ServiceName: { 'Fn::Join': ['', Match.arrayWith([Match.stringLikeRegexp('logs$')])] },
     });
   });
 
-  it('Interfaceエンドポイントはプライベートサブネットに配置される', () => {
+  it('places Interface endpoints in a private subnet', () => {
     const endpoints = template.findResources('AWS::EC2::VPCEndpoint', {
       Properties: { VpcEndpointType: 'Interface' },
     });

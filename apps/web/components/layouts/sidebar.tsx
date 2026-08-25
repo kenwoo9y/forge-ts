@@ -1,7 +1,7 @@
 import { House, X } from "lucide-react";
 import Link from "next/link";
 
-const NAV_ITEMS = [{ href: "/", label: "ホーム", icon: House }];
+const NAV_ITEMS = [{ href: "/", label: "Home", icon: House }];
 
 type SidebarProps = {
   isOpen: boolean;
@@ -16,15 +16,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <button
         type="button"
         className="fixed inset-0 z-40 cursor-default"
-        aria-label="メニューを閉じる"
+        aria-label="Close menu"
         onClick={onClose}
       />
       <div className="fixed top-14 bottom-12 left-0 z-50 w-80 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <span className="font-semibold text-gray-900">メニュー</span>
+          <span className="font-semibold text-gray-900">Menu</span>
           <button
             type="button"
-            aria-label="閉じる"
+            aria-label="Close"
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 transition-colors"
           >

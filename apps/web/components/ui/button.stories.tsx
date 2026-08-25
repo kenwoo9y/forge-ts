@@ -36,63 +36,63 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    children: "ボタン",
+    children: "Button",
   },
 };
 
 export const Destructive: Story = {
   args: {
     variant: "destructive",
-    children: "削除",
+    children: "Delete",
   },
 };
 
 export const Outline: Story = {
   args: {
     variant: "outline",
-    children: "アウトライン",
+    children: "Outline",
   },
 };
 
 export const Secondary: Story = {
   args: {
     variant: "secondary",
-    children: "セカンダリ",
+    children: "Secondary",
   },
 };
 
 export const Ghost: Story = {
   args: {
     variant: "ghost",
-    children: "ゴースト",
+    children: "Ghost",
   },
 };
 
 export const Link: Story = {
   args: {
     variant: "link",
-    children: "リンク",
+    children: "Link",
   },
 };
 
 export const Small: Story = {
   args: {
     size: "sm",
-    children: "小",
+    children: "Small",
   },
 };
 
 export const Large: Story = {
   args: {
     size: "lg",
-    children: "大",
+    children: "Large",
   },
 };
 
 export const Disabled: Story = {
   args: {
     disabled: true,
-    children: "無効",
+    children: "Disabled",
   },
 };
 

@@ -1,16 +1,16 @@
 import type { Username } from './value/username.js';
 
 /**
- * ユーザーエンティティ。
- * システム上のユーザーを表すドメインオブジェクト。
+ * User entity.
+ * A domain object representing a user in the system.
  */
 export class User {
   /**
-   * @param id 内部的な自動採番ID
-   * @param username ユーザー名（値オブジェクト）
-   * @param passwordHash パスワードハッシュ。未設定の場合は `null`
-   * @param createdAt 作成日時
-   * @param updatedAt 更新日時
+   * @param id Internal auto-incremented ID
+   * @param username Username (value object)
+   * @param passwordHash Password hash. `null` if not set
+   * @param createdAt Creation timestamp
+   * @param updatedAt Update timestamp
    */
   constructor(
     public readonly id: bigint,

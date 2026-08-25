@@ -15,13 +15,13 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex h-14 items-center gap-4 px-6">
         <button
           type="button"
-          aria-label="メニュー"
+          aria-label="Menu"
           onClick={onMenuClick}
           className="text-white hover:text-blue-100 transition-colors"
         >
           <Menu className="h-6 w-6" />
         </button>
-        <span className="text-lg font-bold">アプリケーション</span>
+        <span className="text-lg font-bold">Application</span>
 
         <div className="ml-auto flex items-center gap-3">
           {session?.user?.name && (
@@ -33,7 +33,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             className="flex items-center gap-1.5 text-sm text-white hover:text-blue-100 transition-colors"
           >
             <LogOut className="h-4 w-4" />
-            ログアウト
+            Log out
           </button>
         </div>
       </div>

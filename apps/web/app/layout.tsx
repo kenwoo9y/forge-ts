@@ -5,8 +5,8 @@ import { auth } from "@/auth";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "アプリケーション",
-  description: "サンプルアプリケーション",
+  title: "Application",
+  description: "Sample application",
 };
 
 export default async function RootLayout({
@@ -17,7 +17,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="ja">
+    <html lang="en">
       <body>
         <Providers session={session}>{children}</Providers>
       </body>

@@ -1,10 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// .env.local から環境変数を読み込む（ファイルが存在しない場合はスキップ）
+// Load environment variables from .env.local (skip if the file doesn't exist)
 try {
   process.loadEnvFile(".env.local");
 } catch {
-  // ファイルが存在しない場合（CI 環境など）は環境変数をそのまま使用
+  // If the file doesn't exist (e.g. in CI), use the environment variables as-is
 }
 
 /**

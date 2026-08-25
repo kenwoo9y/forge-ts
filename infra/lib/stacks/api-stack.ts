@@ -7,42 +7,42 @@ import type { Construct } from 'constructs';
 import { EcsFargateService } from '../constructs/ecs-fargate-service';
 
 export interface ApiStackProps extends cdk.StackProps {
-  /** NetworkStackで定義したVPC */
+  /** VPC defined in NetworkStack */
   vpc: ec2.Vpc;
-  /** NetworkStackで定義したRDS用セキュリティグループ（ECS→RDSの接続許可に使用） */
+  /** Security group for RDS defined in NetworkStack (used to allow ECS -> RDS connections) */
   rdsSecurityGroup: ec2.SecurityGroup;
-  /** DatabaseStackで作成したRDSインスタンス */
+  /** RDS instance created in DatabaseStack */
   database: rds.DatabaseInstance;
-  /** DatabaseStackで作成したDB認証情報（Secrets Manager） */
+  /** DB credentials created in DatabaseStack (Secrets Manager) */
   databaseCredentials: rds.DatabaseSecret;
-  /** Secrets ManagerにあるJWT署名シークレット */
+  /** JWT signing secret in Secrets Manager */
   jwtSecret: secretsmanager.ISecret;
-  /** PostgreSQL データベース名 */
+  /** PostgreSQL database name */
   dbName: string;
-  /** コンテナイメージ（デフォルト: apps/apiのDockerfileからビルド） */
+  /** Container image (default: built from apps/api's Dockerfile) */
   image?: ecs.ContainerImage;
-  /** コンテナ起動コマンド上書き（プレースホルダ用途） */
+  /** Container start command override (for placeholder use) */
   command?: string[];
-  /** タスクのCPUユニット数（デフォルト: 256） */
+  /** Task CPU units (default: 256) */
   cpu?: number;
-  /** タスクのメモリ (MiB)（デフォルト: 512） */
+  /** Task memory in MiB (default: 512) */
   memoryLimitMiB?: number;
-  /** 起動タスク数（デフォルト: 1） */
+  /** Desired task count (default: 1) */
   desiredCount?: number;
-  /** デプロイコントローラー（デフォルト: ECS） */
+  /** Deployment controller (default: ECS) */
   deploymentController?: ecs.DeploymentControllerType;
-  /** ALBをインターネット向けにするか（デフォルト: false） */
+  /** Whether the ALB is internet-facing (default: false) */
   internetFacing?: boolean;
-  /** タスク定義のfamily名（デプロイコントローラーが CODE_DEPLOY の場合のみ使用） */
+  /** Task definition family name (used only when the deployment controller is CODE_DEPLOY) */
   family?: string;
 }
 
 /**
- * APIバックエンド層のスタック
- * HonoアプリをECS Fargateでホストし、RDS PostgreSQLに接続する
+ * API backend layer stack.
+ * Hosts the Hono app on ECS Fargate and connects it to RDS PostgreSQL.
  */
 export class ApiStack extends cdk.Stack {
-  /** ECS Fargateサービスのコンストラクト */
+  /** ECS Fargate service construct */
   public readonly ecsFargateService: EcsFargateService;
 
   constructor(scope: Construct, id: string, props: ApiStackProps) {
@@ -89,7 +89,7 @@ export class ApiStack extends cdk.Stack {
       deploymentController,
     });
 
-    // ECSサービスのSG → RDSのSG へのポート5432インバウンドルールを追加
+    // Add an inbound rule on port 5432 from the ECS service's SG to the RDS SG
     new ec2.CfnSecurityGroupIngress(this, 'EcsToRdsIngress', {
       groupId: rdsSecurityGroup.securityGroupId,
       ipProtocol: 'tcp',

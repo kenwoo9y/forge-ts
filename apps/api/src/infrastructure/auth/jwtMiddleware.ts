@@ -2,10 +2,10 @@ import type { MiddlewareHandler } from 'hono';
 import { verifyToken } from './jwt.js';
 
 /**
- * JWT 認証ミドルウェアファクトリー。
- * Authorization: Bearer <token> ヘッダーを検証し、
- * 検証済みペイロードを `c.set('jwtPayload', payload)` で後続に渡す。
- * @param secret JWT 署名シークレット
+ * JWT authentication middleware factory.
+ * Verifies the Authorization: Bearer <token> header, and
+ * passes the verified payload downstream via `c.set('jwtPayload', payload)`.
+ * @param secret The JWT signing secret
  */
 export function jwtAuth(secret: string): MiddlewareHandler {
   return async (c, next) => {

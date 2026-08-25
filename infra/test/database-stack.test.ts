@@ -17,50 +17,50 @@ describe('DatabaseStack', () => {
   });
   const template = Template.fromStack(stack);
 
-  it('RDSインスタンスが1つ作成される', () => {
+  it('creates one RDS instance', () => {
     template.resourceCountIs('AWS::RDS::DBInstance', 1);
   });
 
-  it('RDSインスタンスがPostgreSQL 16を使用する', () => {
+  it('the RDS instance uses PostgreSQL 16', () => {
     template.hasResourceProperties('AWS::RDS::DBInstance', {
       Engine: 'postgres',
       EngineVersion: Match.stringLikeRegexp('^16'),
     });
   });
 
-  it('RDSインスタンスがt3.microを使用する', () => {
+  it('the RDS instance uses t3.micro', () => {
     template.hasResourceProperties('AWS::RDS::DBInstance', {
       DBInstanceClass: 'db.t3.micro',
     });
   });
 
-  it('DBサブネットグループが作成される', () => {
+  it('creates a DB subnet group', () => {
     template.resourceCountIs('AWS::RDS::DBSubnetGroup', 1);
   });
 
-  it('DB認証情報がSecrets Managerに保存される', () => {
+  it('stores DB credentials in Secrets Manager', () => {
     template.resourceCountIs('AWS::SecretsManager::Secret', 1);
   });
 
-  it('データベース名がPOSTGRES_DBの値に設定される', () => {
+  it('sets the database name to the value of POSTGRES_DB', () => {
     template.hasResourceProperties('AWS::RDS::DBInstance', {
       DBName: 'test_db',
     });
   });
 
-  it('ストレージが20GBで設定される', () => {
+  it('sets storage to 20GB', () => {
     template.hasResourceProperties('AWS::RDS::DBInstance', {
       AllocatedStorage: '20',
     });
   });
 
-  it('最大ストレージが100GBで設定される', () => {
+  it('sets max storage to 100GB', () => {
     template.hasResourceProperties('AWS::RDS::DBInstance', {
       MaxAllocatedStorage: 100,
     });
   });
 
-  it('MultiAZが無効である', () => {
+  it('disables MultiAZ', () => {
     template.hasResourceProperties('AWS::RDS::DBInstance', {
       MultiAZ: false,
     });

@@ -11,12 +11,9 @@ const meta = {
   },
   tags: ["autodocs"],
   args: {
-    error: Object.assign(
-      new globalThis.Error("予期しないエラーが発生しました"),
-      {
-        digest: "digest-001",
-      },
-    ),
+    error: Object.assign(new globalThis.Error("An unexpected error occurred"), {
+      digest: "digest-001",
+    }),
     reset: fn(),
   },
 } satisfies Meta<typeof ErrorPage>;
@@ -30,7 +27,7 @@ export const WithLongMessage: Story = {
   args: {
     error: Object.assign(
       new globalThis.Error(
-        "データベース接続に失敗しました。しばらく時間をおいてから再度お試しください。",
+        "Failed to connect to the database. Please try again later.",
       ),
       { digest: "digest-002" },
     ),

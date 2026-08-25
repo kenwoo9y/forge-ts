@@ -13,7 +13,7 @@ import { signupAction } from "./actions";
 const signupFormSchema = signupSchema
   .extend({ confirmPassword: z.string() })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "パスワードが一致しません",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
@@ -37,9 +37,7 @@ export default function SignupPage() {
       await signupAction(data);
       router.push("/signin");
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "予期しないエラーが発生しました",
-      );
+      setError(e instanceof Error ? e.message : "An unexpected error occurred");
     }
   }
 
@@ -47,9 +45,9 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 via-slate-100 to-blue-100 px-4 py-12">
       <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-md">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">アカウント作成</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Create account</h1>
           <p className="mt-1 text-sm text-gray-500">
-            アカウントを作成してください
+            Please create your account
           </p>
         </div>
 
@@ -59,14 +57,14 @@ export default function SignupPage() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700"
             >
-              ユーザー名 <span className="text-red-500">*</span>
+              Username <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 id="username"
                 type="text"
-                placeholder="ユーザー名を入力"
+                placeholder="Enter your username"
                 {...register("username")}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
               />
@@ -81,14 +79,14 @@ export default function SignupPage() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
-              パスワード <span className="text-red-500">*</span>
+              Password <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 id="password"
                 type="password"
-                placeholder="パスワードを入力"
+                placeholder="Enter your password"
                 {...register("password")}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
               />
@@ -103,14 +101,14 @@ export default function SignupPage() {
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-gray-700"
             >
-              パスワード（確認）<span className="text-red-500">*</span>
+              Password (confirm) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 id="confirmPassword"
                 type="password"
-                placeholder="パスワードを再入力"
+                placeholder="Re-enter your password"
                 {...register("confirmPassword")}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
               />
@@ -130,16 +128,16 @@ export default function SignupPage() {
             className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-base transition-colors disabled:opacity-50"
           >
             <UserPlus className="size-4" />
-            アカウント作成
+            Create account
           </button>
         </form>
 
         <hr className="my-6 border-gray-100" />
 
         <p className="text-center text-sm text-gray-500">
-          既にアカウントをお持ちですか？{" "}
+          Already have an account?{" "}
           <Link href="/signin" className="text-blue-500 hover:underline">
-            ログイン
+            Sign in
           </Link>
         </p>
       </div>

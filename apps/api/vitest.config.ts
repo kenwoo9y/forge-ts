@@ -13,9 +13,9 @@ export default mergeConfig(
           'src/infrastructure/prisma/**',
           'src/infrastructure/logger/**',
           'src/index.ts',
-          // DIコンポジションルート。実DBに対するIntegrationテスト（integration/*.integration.test.ts）が実際の配線ごと検証する
+          // DI composition root. Integration tests against the real DB (integration/*.integration.test.ts) verify the actual wiring.
           'src/app.ts',
-          // 実Honoコンテキストがないと振る舞いとして検証できない（モックしたContextでの検証はロンドン学派的になるため避ける）。
+          // Cannot be verified as behavior without a real Hono context (verifying against a mocked Context would be too London-school, so we avoid it).
           'src/infrastructure/auth/jwtMiddleware.ts',
           'src/**/dto.ts',
           'src/**/repository.ts',

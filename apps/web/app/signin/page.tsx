@@ -27,7 +27,7 @@ export default function SigninPage() {
       redirect: false,
     });
     if (result?.error) {
-      setError("ユーザー名またはパスワードが正しくありません");
+      setError("Incorrect username or password");
     } else {
       window.location.assign("/");
     }
@@ -35,7 +35,7 @@ export default function SigninPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-blue-50 via-slate-100 to-blue-100 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900">ログイン</h1>
+      <h1 className="text-3xl font-bold mb-8 text-gray-900">Sign in</h1>
 
       <div className="bg-white rounded-2xl shadow-sm p-8 w-full max-w-md">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -44,14 +44,14 @@ export default function SigninPage() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700"
             >
-              ユーザー名
+              Username
             </label>
             <div className="relative">
               <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 id="username"
                 type="text"
-                placeholder="ユーザー名を入力"
+                placeholder="Enter your username"
                 {...register("username")}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
               />
@@ -66,14 +66,14 @@ export default function SigninPage() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
-              パスワード
+              Password
             </label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 id="password"
                 type="password"
-                placeholder="パスワードを入力"
+                placeholder="Enter your password"
                 {...register("password")}
                 className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl text-sm outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition"
               />
@@ -91,16 +91,16 @@ export default function SigninPage() {
             className="w-full flex items-center justify-center gap-2 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-base transition-colors disabled:opacity-50"
           >
             <LogIn className="size-4" />
-            ログイン
+            Sign in
           </button>
         </form>
 
         <hr className="my-6 border-gray-100" />
 
         <p className="text-center text-sm text-gray-500">
-          アカウントをお持ちでないですか？{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-blue-500 hover:underline">
-            アカウント作成
+            Sign up
           </Link>
         </p>
       </div>

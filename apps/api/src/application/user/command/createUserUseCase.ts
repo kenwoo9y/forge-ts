@@ -6,32 +6,32 @@ import { Username } from '../../../domain/user/value/username.js';
 import type { CreateUserInput, CreateUserOutput } from '../dto.js';
 
 /**
- * ユーザー作成ユースケースのインターフェース。
+ * Interface for the create-user use case.
  */
 export interface ICreateUserUseCase {
   /**
-   * ユーザーを作成する。
-   * @param input ユーザー作成に必要な入力データ
-   * @returns 作成されたユーザーの出力データ
+   * Creates a user.
+   * @param input The input data needed to create a user
+   * @returns The output data for the created user
    */
   execute(input: CreateUserInput): Promise<CreateUserOutput>;
 }
 
 /**
- * ユーザー作成ユースケースの実装クラス。
- * ユーザー名・メールアドレスの重複チェックを行い、ユーザーを保存する。
+ * Implementation class for the create-user use case.
+ * Checks for username/email duplication and saves the user.
  */
 export class CreateUserUseCase implements ICreateUserUseCase {
   /**
-   * @param userRepository ユーザーリポジトリ
+   * @param userRepository The user repository
    */
   constructor(private readonly userRepository: IUserRepository) {}
 
   /**
-   * ユーザーを作成する。
-   * @param input ユーザー作成に必要な入力データ
-   * @returns 作成されたユーザーの出力データ
-   * @throws {UsernameDuplicateError} ユーザー名が既に使用されている場合
+   * Creates a user.
+   * @param input The input data needed to create a user
+   * @returns The output data for the created user
+   * @throws {UsernameDuplicateError} If the username is already in use
    */
   async execute(input: CreateUserInput): Promise<CreateUserOutput> {
     const username = Username.create(input.username);

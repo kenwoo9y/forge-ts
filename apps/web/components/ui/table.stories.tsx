@@ -24,33 +24,38 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const sampleRows = [
-  { id: 1, title: "デザインレビュー", dueDate: "2026-03-10", status: "進行中" },
+  {
+    id: 1,
+    title: "Design review",
+    dueDate: "2026-03-10",
+    status: "In progress",
+  },
   {
     id: 2,
-    title: "APIドキュメント作成",
+    title: "Write API docs",
     dueDate: "2026-03-15",
-    status: "未着手",
+    status: "Not started",
   },
-  { id: 3, title: "テストコード追加", dueDate: "2026-03-20", status: "完了" },
+  { id: 3, title: "Add test code", dueDate: "2026-03-20", status: "Done" },
   {
     id: 4,
-    title: "パフォーマンス改善",
+    title: "Performance improvements",
     dueDate: "2026-03-25",
-    status: "未着手",
+    status: "Not started",
   },
-  { id: 5, title: "デプロイ準備", dueDate: "2026-03-31", status: "完了" },
+  { id: 5, title: "Deployment prep", dueDate: "2026-03-31", status: "Done" },
 ];
 
 export const Default: Story = {
   render: () => (
     <Table>
-      <TableCaption>ToDoリスト一覧</TableCaption>
+      <TableCaption>To-Do List</TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="w-12">#</TableHead>
-          <TableHead>タイトル</TableHead>
-          <TableHead>期日</TableHead>
-          <TableHead>ステータス</TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Due date</TableHead>
+          <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -73,9 +78,9 @@ export const WithFooter: Story = {
       <TableHeader>
         <TableRow>
           <TableHead className="w-12">#</TableHead>
-          <TableHead>タイトル</TableHead>
-          <TableHead>期日</TableHead>
-          <TableHead>ステータス</TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Due date</TableHead>
+          <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -90,8 +95,8 @@ export const WithFooter: Story = {
       </TableBody>
       <TableFooter>
         <TableRow>
-          <TableCell colSpan={3}>合計</TableCell>
-          <TableCell>{sampleRows.length}件</TableCell>
+          <TableCell colSpan={3}>Total</TableCell>
+          <TableCell>{sampleRows.length} items</TableCell>
         </TableRow>
       </TableFooter>
     </Table>
@@ -104,15 +109,15 @@ export const Empty: Story = {
       <TableHeader>
         <TableRow>
           <TableHead className="w-12">#</TableHead>
-          <TableHead>タイトル</TableHead>
-          <TableHead>期日</TableHead>
-          <TableHead>ステータス</TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Due date</TableHead>
+          <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         <TableRow>
           <TableCell colSpan={4} className="py-20 text-center text-gray-400">
-            データがありません
+            No data
           </TableCell>
         </TableRow>
       </TableBody>

@@ -1,20 +1,20 @@
 export const ErrorCode = {
-  // 認証
+  // Auth
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
-  // ユーザー
+  // User
   USERNAME_REQUIRED: 'USERNAME_REQUIRED',
   USERNAME_DUPLICATE: 'USERNAME_DUPLICATE',
   USER_NOT_FOUND: 'USER_NOT_FOUND',
-  // 汎用
+  // Generic
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
 
 export const errorMessages: Record<ErrorCode, string> = {
-  INVALID_CREDENTIALS: 'ユーザー名またはパスワードが正しくありません',
-  USERNAME_REQUIRED: 'ユーザー名は必須です',
-  USERNAME_DUPLICATE: 'このユーザー名はすでに使用されています',
-  USER_NOT_FOUND: 'ユーザーが見つかりません',
-  INTERNAL_SERVER_ERROR: '予期しないエラーが発生しました',
+  INVALID_CREDENTIALS: 'Incorrect username or password',
+  USERNAME_REQUIRED: 'Username is required',
+  USERNAME_DUPLICATE: 'This username is already taken',
+  USER_NOT_FOUND: 'User not found',
+  INTERNAL_SERVER_ERROR: 'An unexpected error occurred',
 };

@@ -2,30 +2,30 @@ import type { UserReadModel } from '../dto.js';
 import type { IUserQueryService } from './queryService.js';
 
 /**
- * ユーザー取得ユースケースのインターフェース。
+ * Interface for the get-user use case.
  */
 export interface IGetUserUseCase {
   /**
-   * ユーザー名でユーザーを取得する。
-   * @param username 検索するユーザー名
-   * @returns 該当するユーザーの読み取りモデル。存在しない場合は `null`
+   * Gets a user by username.
+   * @param username The username to search for
+   * @returns The matching user's read model. `null` if it does not exist
    */
   execute(username: string): Promise<UserReadModel | null>;
 }
 
 /**
- * ユーザー取得ユースケースの実装クラス。
+ * Implementation class for the get-user use case.
  */
 export class GetUserUseCase implements IGetUserUseCase {
   /**
-   * @param userQueryService ユーザークエリサービス
+   * @param userQueryService The user query service
    */
   constructor(private readonly userQueryService: IUserQueryService) {}
 
   /**
-   * ユーザー名でユーザーを取得する。
-   * @param username 検索するユーザー名
-   * @returns 該当するユーザーの読み取りモデル。存在しない場合は `null`
+   * Gets a user by username.
+   * @param username The username to search for
+   * @returns The matching user's read model. `null` if it does not exist
    */
   async execute(username: string): Promise<UserReadModel | null> {
     return this.userQueryService.findByUsername(username);

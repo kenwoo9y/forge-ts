@@ -1,34 +1,34 @@
 ---
-name: "🐛 バグ報告"
-about: "期待通りに動作しない場合の報告"
+name: "🐛 Bug report"
+about: "Report something that isn't working as expected"
 title: ''
 labels: 'bug'
 assignees: ''
 
 ---
 
-## バグ報告
+## Bug Report
 
-### 現在の動作
-<!--- 期待通りに動作しない内容を簡潔に説明してください。 -->
+### Current behavior
+<!--- Briefly describe what isn't working as expected. -->
 
-### 入力コード
-- REPLまたはリポジトリリンク（該当する場合）:
+### Input code
+- REPL or repository link (if applicable):
 
 ```js
 var your => (code) => here;
 ```
 
-### 期待される動作/コード
-<!--- 期待していた動作（またはコード）を簡潔に説明してください。 -->
+### Expected behavior/code
+<!--- Briefly describe the behavior (or code) you expected. -->
 
 
-### 環境情報
-- Node/npmバージョン: [例: Node 8/npm 5]
-- OS: [例: OSX 10.13.4, Windows 10]
+### Environment
+- Node/npm version: [e.g. Node 8/npm 5]
+- OS: [e.g. OSX 10.13.4, Windows 10]
 
-### 考えられる解決策
-<!--- バグの修正方法について提案がある場合のみ記入してください -->
+### Possible solution
+<!--- Only fill this in if you have a suggestion for how to fix the bug -->
 
-### 追加情報/スクリーンショット
-<!--- 問題に関するその他の情報をここに追加してください。該当する場合は、説明を助けるためにスクリーンショットを追加してください。  -->
+### Additional context/screenshots
+<!--- Add any other context about the problem here. Add screenshots if applicable to help explain. -->

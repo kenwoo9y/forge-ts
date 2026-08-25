@@ -9,9 +9,9 @@ import type { WebStack } from './web-stack';
 export interface EnvResources {
   apiStack: ApiStack;
   webStack: WebStack;
-  /** マイグレーション用CodeBuildをRDSと同じVPCに配置するために使用 */
+  /** Used to place the migration CodeBuild project in the same VPC as RDS */
   vpc: ec2.Vpc;
-  /** マイグレーション用CodeBuildからのアクセスを許可するために使用 */
+  /** Used to allow access from the migration CodeBuild project */
   rdsSecurityGroup: ec2.SecurityGroup;
   database: rds.DatabaseInstance;
   databaseCredentials: rds.DatabaseSecret;
@@ -19,16 +19,18 @@ export interface EnvResources {
 }
 
 /**
- * 同一アカウント内のライブCDK参照から組み立てるアプリ環境設定。
- * DEV（PipelineStackと同一アカウント）と、Stg/Prod（DeployTargetStackから見て同一アカウント）の双方で使用する。
+ * App environment configuration built from live CDK references within the same account.
+ * Used both for DEV (same account as PipelineStack) and for Stg/Prod (same account, from
+ * DeployTargetStack's point of view).
  */
 export interface LocalAppEnvConfig {
   repository: ecr.IRepository;
   fargateService: ecs.FargateService;
   /**
-   * cdk deployのたびに最新化されるタスク定義のfamily名（revision省略で最新ACTIVEを指す）。
-   * クロスアカウントの`ecs describe-task-definition`はrevision付きARN（デプロイ時に決まるトークン）をアカウントを跨いで参照できないため、
-   * family名で統一する。
+   * The task definition's family name, kept up to date on every cdk deploy (omitting the
+   * revision refers to the latest ACTIVE). Cross-account `ecs describe-task-definition` cannot
+   * resolve a revision-qualified ARN (a token determined at deploy time) across accounts, so
+   * we standardize on the family name instead.
    */
   taskDefFamily: string;
   blueTargetGroup: elbv2.ApplicationTargetGroup;

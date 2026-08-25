@@ -20,7 +20,7 @@ export async function unwrap<T>(response: JsonResponse): Promise<T> {
     try {
       body = JSON.parse(rawBody);
     } catch {
-      // レスポンスがJSONでない場合（ALB/プロキシのエラーページ等）はそのまま握りつぶす
+      // If the response isn't JSON (e.g. an ALB/proxy error page), swallow it as-is
     }
     console.error(
       `[hono-client] request failed: status=${response.status} body=${rawBody.slice(0, 1000)}`,

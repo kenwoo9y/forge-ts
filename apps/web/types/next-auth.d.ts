@@ -6,7 +6,7 @@ declare module "next-auth" {
     apiToken?: string;
   }
   interface Session {
-    /** Hono API が発行した JWT。API リクエストの Authorization ヘッダーに使用する */
+    /** JWT issued by the Hono API. Used in the Authorization header of API requests */
     apiToken: string;
   }
 }
@@ -14,7 +14,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     username: string;
-    /** Hono API が発行した JWT */
+    /** JWT issued by the Hono API */
     apiToken: string;
   }
 }

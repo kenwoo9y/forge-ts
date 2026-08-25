@@ -1,21 +1,21 @@
 import type { User } from './entity.js';
 
 /**
- * ユーザーリポジトリのインターフェース。
- * ユーザーの永続化・取得を抽象化する。
+ * Interface for the user repository.
+ * Abstracts persistence and retrieval of users.
  */
 export interface IUserRepository {
   /**
-   * ユーザーを新規保存する。
-   * @param user 保存するユーザーエンティティ
-   * @returns 保存されたユーザーエンティティ
+   * Saves a new user.
+   * @param user The user entity to save
+   * @returns The saved user entity
    */
   save(user: User): Promise<User>;
 
   /**
-   * ユーザー名でユーザーを取得する。
-   * @param username 検索するユーザー名
-   * @returns 該当するユーザー。存在しない場合は `null`
+   * Gets a user by username.
+   * @param username The username to search for
+   * @returns The matching user. `null` if it does not exist
    */
   findByUsername(username: string): Promise<User | null>;
 }

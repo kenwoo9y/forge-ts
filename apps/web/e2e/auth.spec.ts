@@ -3,20 +3,20 @@ import { expect, test } from "@playwright/test";
 const E2E_USERNAME = process.env.E2E_USERNAME ?? "e2e_test_user";
 const E2E_PASSWORD = process.env.E2E_PASSWORD ?? "Password123!";
 
-test.describe("ログインページ", () => {
+test.describe("Sign-in page", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/signin");
   });
 
-  test("ログインページが表示される", async ({ page }) => {
+  test("displays the sign-in page", async ({ page }) => {
     await expect(page).toHaveTitle(/.*/, { timeout: 10000 });
-    await expect(page.getByRole("heading", { name: "ログイン" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
     await expect(page.locator("#username")).toBeVisible();
     await expect(page.locator("#password")).toBeVisible();
-    await expect(page.getByRole("button", { name: "ログイン" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   });
 
-  test("正しい認証情報でログインするとホームにリダイレクトされる", async ({
+  test("redirects to home when signing in with valid credentials", async ({
     page,
   }) => {
     await page.fill("#username", E2E_USERNAME);
@@ -24,10 +24,10 @@ test.describe("ログインページ", () => {
     await page.click('button[type="submit"]');
 
     await expect(page).toHaveURL("/");
-    await expect(page.getByRole("heading", { name: "ホーム" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Home" })).toBeVisible();
   });
 
-  test("誤った認証情報でログインするとエラーメッセージが表示される", async ({
+  test("shows an error message when signing in with invalid credentials", async ({
     page,
   }) => {
     await page.fill("#username", "wrong_user");
@@ -35,12 +35,12 @@ test.describe("ログインページ", () => {
     await page.click('button[type="submit"]');
 
     await expect(
-      page.getByText("ユーザー名またはパスワードが正しくありません"),
+      page.getByText("Incorrect username or password"),
     ).toBeVisible();
     await expect(page).toHaveURL("/signin");
   });
 
-  test("ユーザー名未入力でバリデーションエラーが表示される", async ({
+  test("shows a validation error when the username is empty", async ({
     page,
   }) => {
     await page.click('button[type="submit"]');
@@ -48,48 +48,48 @@ test.describe("ログインページ", () => {
     await expect(page.locator("p.text-red-500").first()).toBeVisible();
   });
 
-  test("アカウント作成ページへのリンクが機能する", async ({ page }) => {
-    await page.getByRole("link", { name: "アカウント作成" }).click();
+  test("the link to the sign-up page works", async ({ page }) => {
+    await page.getByRole("link", { name: "Sign up" }).click();
 
     await expect(page).toHaveURL("/signup");
   });
 });
 
-test.describe("アカウント作成ページ", () => {
+test.describe("Sign-up page", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/signup");
   });
 
-  test("アカウント作成ページが表示される", async ({ page }) => {
+  test("displays the sign-up page", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: "アカウント作成" }),
+      page.getByRole("heading", { name: "Create account" }),
     ).toBeVisible();
     await expect(page.locator("#username")).toBeVisible();
     await expect(page.locator("#password")).toBeVisible();
     await expect(page.locator("#confirmPassword")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "アカウント作成" }),
+      page.getByRole("button", { name: "Create account" }),
     ).toBeVisible();
   });
 
-  test("パスワードが一致しない場合にエラーが表示される", async ({ page }) => {
+  test("shows an error when the passwords do not match", async ({ page }) => {
     await page.fill("#username", "newUser");
     await page.fill("#password", "Password123!");
     await page.fill("#confirmPassword", "DifferentPassword!");
     await page.click('button[type="submit"]');
 
-    await expect(page.getByText("パスワードが一致しません")).toBeVisible();
+    await expect(page.getByText("Passwords do not match")).toBeVisible();
   });
 
-  test("ログインページへのリンクが機能する", async ({ page }) => {
-    await page.getByRole("link", { name: "ログイン" }).click();
+  test("the link to the sign-in page works", async ({ page }) => {
+    await page.getByRole("link", { name: "Sign in" }).click();
 
     await expect(page).toHaveURL("/signin");
   });
 });
 
-test.describe("認証保護", () => {
-  test("未認証でホームにアクセスするとログインページにリダイレクトされる", async ({
+test.describe("Auth protection", () => {
+  test("redirects to the sign-in page when accessing home unauthenticated", async ({
     page,
   }) => {
     await page.goto("/");

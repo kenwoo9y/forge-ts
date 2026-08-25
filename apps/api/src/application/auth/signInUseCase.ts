@@ -17,13 +17,13 @@ export interface ISignInUseCase {
 }
 
 /**
- * サインインユースケース。
- * ユーザー名・パスワードを検証し、JWT を発行する。
+ * Sign-in use case.
+ * Verifies the username and password, and issues a JWT.
  */
 export class SignInUseCase implements ISignInUseCase {
   /**
-   * @param userRepository ユーザーリポジトリ
-   * @param jwtSecret JWT 署名シークレット
+   * @param userRepository The user repository
+   * @param jwtSecret The JWT signing secret
    */
   constructor(
     private readonly userRepository: IUserRepository,
@@ -31,9 +31,9 @@ export class SignInUseCase implements ISignInUseCase {
   ) {}
 
   /**
-   * 認証を行い JWT を返す。
-   * @param input ユーザー名とパスワード
-   * @returns JWT とユーザー名。認証失敗時は `null`
+   * Authenticates and returns a JWT.
+   * @param input The username and password
+   * @returns The JWT and username. `null` if authentication fails
    */
   async execute(input: SignInInput): Promise<SignInOutput | null> {
     const user = await this.userRepository.findByUsername(input.username);

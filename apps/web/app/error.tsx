@@ -17,7 +17,7 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
     <AppLayout>
       <div className="mx-auto max-w-5xl px-6 py-20 text-center">
         <h2 className="mb-4 text-xl font-bold text-gray-900">
-          予期しないエラーが発生しました
+          An unexpected error occurred
         </h2>
         <p className="mb-6 text-sm text-gray-500">{error.message}</p>
         <button
@@ -25,7 +25,7 @@ export default function ErrorPage({ error, reset }: ErrorProps) {
           onClick={reset}
           className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
         >
-          再試行
+          Try again
         </button>
       </div>
     </AppLayout>

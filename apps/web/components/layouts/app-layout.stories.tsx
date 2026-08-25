@@ -6,7 +6,7 @@ import { AppLayout } from "./app-layout";
 const authenticatedDecorator = (Story: React.ComponentType) => (
   <SessionProvider
     session={{
-      user: { name: "山田 太郎" },
+      user: { name: "John Doe" },
       expires: "2099-01-01",
       apiToken: "mock-token",
     }}
@@ -23,9 +23,7 @@ const meta = {
   },
   tags: ["autodocs"],
   args: {
-    children: (
-      <div className="p-6 text-gray-600">ページコンテンツがここに入ります</div>
-    ),
+    children: <div className="p-6 text-gray-600">Page content goes here</div>,
   },
 } satisfies Meta<typeof AppLayout>;
 
@@ -43,9 +41,9 @@ export const WithRichContent: Story = {
   args: {
     children: (
       <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold text-gray-900">ToDoリスト</h1>
+        <h1 className="text-2xl font-bold text-gray-900">To-Do List</h1>
         <p className="text-gray-600">
-          実際のページコンテンツが入る領域のサンプルです。
+          A sample of the area where actual page content appears.
         </p>
       </div>
     ),

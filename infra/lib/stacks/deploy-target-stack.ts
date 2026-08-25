@@ -19,23 +19,24 @@ import {
 import type { EnvResources } from './pipeline-types';
 
 export interface DeployTargetStackProps extends cdk.StackProps {
-  /** 'dev'は`PIPELINE_ACCOUNT_ID`でPipelineをDevと別アカウントに切り出した場合のみ使用する */
+  /** 'dev' is only used when the Pipeline has been split off into an account separate from Dev via `PIPELINE_ACCOUNT_ID` */
   envName: EnvName;
-  /** Pipelineアカウント（`PipelineStack`が配置されているアカウント。デフォルトはDevと同居）のID */
+  /** ID of the Pipeline account (the account where `PipelineStack` is deployed; defaults to sharing the Dev account) */
   pipelineAccountId: string;
-  /** このアカウント内のApi/WebStack等（同一アカウントのためライブCDK参照をそのまま使える） */
+  /** Api/WebStack etc. within this account (same account, so the live CDK references can be used directly) */
   envResources: EnvResources;
-  /** Pipelineアカウントに集約されたECRリポジトリのARN（`ecr-stack.ts`のリソースポリシーで本アカウントへのpullが許可されている） */
+  /** ARN of the ECR repository consolidated in the Pipeline account (pulls to this account are allowed via the resource policy in `ecr-stack.ts`) */
   ecrRepoArns: { api: string; web: string };
 }
 
 /**
- * Dev/Stg/Prodアカウント側に配置する、パイプライン実行用リソース。
- * PipelineアカウントのCodePipeline（`PipelineStack`）とこのスタックのアカウントが異なる場合
- * （Stg/Prodは常に該当。Devは`PIPELINE_ACCOUNT_ID`指定時のみ該当）に使用する。
- * CloudFormationのクロスアカウント参照ができないため、これらのリソースをアカウントID＋
- * 命名規則（`pipeline-naming.ts`）から逆算して`fromXxxAttributes`でインポートし、
- * `PipelineCrossAccountRole`を引き受けて操作する。
+ * Pipeline-execution resources deployed on the Dev/Stg/Prod account side.
+ * Used whenever the account of this stack differs from the account of the Pipeline's
+ * CodePipeline (`PipelineStack`) — always true for Stg/Prod, and true for Dev only when
+ * `PIPELINE_ACCOUNT_ID` is specified.
+ * Since CloudFormation cannot make cross-account references, these resources are instead
+ * imported via `fromXxxAttributes`, reconstructed from the account ID plus the naming
+ * convention (`pipeline-naming.ts`), and operated on by assuming `PipelineCrossAccountRole`.
  */
 export class DeployTargetStack extends cdk.Stack {
   public readonly crossAccountRole: iam.Role;
@@ -77,7 +78,7 @@ export class DeployTargetStack extends cdk.Stack {
       deploymentGroupName: codeDeployGroupName('Web', envName),
     });
 
-    // Prismaマイグレーションが必要なのはDBに接続するApiのみ。Webは静的なため不要
+    // Only Api, which connects to the DB, needs a Prisma migration. Web is static, so it doesn't need one.
     const apiMigrateProject = buildMigrateProject(
       this,
       migrateProjectName('Api', envName),
@@ -85,7 +86,7 @@ export class DeployTargetStack extends cdk.Stack {
       apiRepo
     );
 
-    // ─── クロスアカウント実行ロール（Devアカウントのパイプラインが引き受ける） ─────────
+    // ─── Cross-account execution role (assumed by the pipeline in the Dev account) ─────────
     this.crossAccountRole = new iam.Role(this, 'PipelineCrossAccountRole', {
       roleName: crossAccountRoleName(envName),
       assumedBy: new iam.AccountPrincipal(pipelineAccountId),
@@ -119,8 +120,9 @@ export class DeployTargetStack extends cdk.Stack {
         resources: [apiMigrateProject.projectArn],
       })
     );
-    // タスク定義はrevisionごとにARNが変わり、GenerateステージはCDK deployのたびに
-    // 更新されるfamily名の「最新ACTIVE」を都度引くため、familyを絞り込めず`*`とする
+    // The task definition's ARN changes with every revision, and the Generate stage looks up
+    // the "latest ACTIVE" for the family name — which is updated on every CDK deploy — each
+    // time, so the family cannot be narrowed down and `*` is used instead
     this.crossAccountRole.addToPolicy(
       new iam.PolicyStatement({
         sid: 'EcsDescribeTaskDefinition',

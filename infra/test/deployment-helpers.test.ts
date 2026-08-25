@@ -8,13 +8,13 @@ import { NetworkStack } from '../lib/stacks/network-stack';
 import { WebStack } from '../lib/stacks/web-stack';
 
 describe('buildAppEnvConfig', () => {
-  it('デプロイコントローラーがCODE_DEPLOYでない（greenTargetGroupが存在しない）場合はエラーを投げる', () => {
+  it('throws an error when the deployment controller is not CODE_DEPLOY (greenTargetGroup does not exist)', () => {
     const app = new cdk.App();
     const networkStack = new NetworkStack(app, 'TestNetworkStack');
     const sharedStack = new cdk.Stack(app, 'TestSharedStack');
     const authSecret = new secretsmanager.Secret(sharedStack, 'AuthSecret');
 
-    // deploymentController未指定 = デフォルトのECS（CODE_DEPLOYではない）ため greenTargetGroup が存在しない
+    // deploymentController unspecified = defaults to ECS (not CODE_DEPLOY), so greenTargetGroup does not exist
     const webStack = new WebStack(app, 'TestWebStack', {
       vpc: networkStack.vpc,
       apiUrl: 'http://api.example.com',

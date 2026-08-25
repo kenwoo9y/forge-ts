@@ -9,8 +9,8 @@ import { DeployTargetStack } from '../lib/stacks/deploy-target-stack';
 import { NetworkStack } from '../lib/stacks/network-stack';
 import { WebStack } from '../lib/stacks/web-stack';
 
-// DeployTargetStack はSTG/PRODアカウントに配置される。account/regionを指定することで
-// クロスアカウントARNの組み立てを確定的にする
+// DeployTargetStack is deployed to STG/PROD accounts. Specifying account/region makes
+// the construction of cross-account ARNs deterministic
 const STG_ENV = { account: '222222222222', region: 'ap-northeast-1' };
 const DEV_ACCOUNT_ID = '111111111111';
 
@@ -73,12 +73,12 @@ function buildDeployTargetStack() {
 describe('DeployTargetStack', () => {
   const template = buildDeployTargetStack();
 
-  it('Api/WebのCodeDeployアプリケーションが明示的な名前で作成される', () => {
+  it('creates the Api/Web CodeDeploy applications with explicit names', () => {
     template.hasResourceProperties('AWS::CodeDeploy::Application', { ApplicationName: 'ApiStg' });
     template.hasResourceProperties('AWS::CodeDeploy::Application', { ApplicationName: 'WebStg' });
   });
 
-  it('Api/Webのデプロイメントグループが明示的な名前・Blue/Green設定で作成される', () => {
+  it('creates the Api/Web deployment groups with explicit names and a Blue/Green configuration', () => {
     template.hasResourceProperties('AWS::CodeDeploy::DeploymentGroup', {
       DeploymentGroupName: 'ApiStgDeploymentGroup',
       DeploymentStyle: {
@@ -91,12 +91,12 @@ describe('DeployTargetStack', () => {
     });
   });
 
-  it('Prismaマイグレーション用CodeBuildプロジェクトがApiのみ命名規則通りの名前で作成される', () => {
+  it('creates the Prisma migration CodeBuild project, named per convention, only for Api', () => {
     template.hasResourceProperties('AWS::CodeBuild::Project', { Name: 'ApiMigrateStg' });
     template.resourcePropertiesCountIs('AWS::CodeBuild::Project', { Name: 'WebMigrateStg' }, 0);
   });
 
-  it('マイグレーションCodeBuildにDevアカウント集約ECRリポジトリへのpull権限が付与される', () => {
+  it('grants the migration CodeBuild project pull permission on the Dev-account-consolidated ECR repository', () => {
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
@@ -109,14 +109,14 @@ describe('DeployTargetStack', () => {
     });
   });
 
-  it('クロスアカウントロールが命名規則通りの名前で、Devアカウントからの引き受けのみを信頼する', () => {
+  it('the cross-account role is named per convention and trusts only assumption from the Dev account', () => {
     template.hasResourceProperties('AWS::IAM::Role', {
       RoleName: 'pipeline-cross-account-stg',
       AssumeRolePolicyDocument: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({
             Action: 'sts:AssumeRole',
-            // AccountPrincipal は Stack非依存のためパーティションを `Fn::Join` で組み立てる
+            // AccountPrincipal is stack-independent, so the partition is built with `Fn::Join`
             Principal: Match.objectLike({
               AWS: Match.objectLike({
                 'Fn::Join': Match.arrayWith([
@@ -130,7 +130,7 @@ describe('DeployTargetStack', () => {
     });
   });
 
-  it('クロスアカウントロールがCodeDeploy/CodeBuild/ECS DescribeTaskDefinitionの操作権限を持つ', () => {
+  it('the cross-account role has permission to operate CodeDeploy/CodeBuild/ECS DescribeTaskDefinition', () => {
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
@@ -164,7 +164,7 @@ describe('DeployTargetStack', () => {
   });
 });
 
-// ─── envName: 'dev'（PIPELINE_ACCOUNT_ID指定でDevをクロスアカウント化する場合）のテスト ──
+// ─── Tests for envName: 'dev' (when PIPELINE_ACCOUNT_ID makes Dev cross-account) ──
 
 describe('DeployTargetStack (envName: dev)', () => {
   const PIPELINE_ACCOUNT_ID = '333333333333';
@@ -225,12 +225,12 @@ describe('DeployTargetStack (envName: dev)', () => {
     return Template.fromStack(stack);
   })();
 
-  it('Devの命名規則（ApiDev等）でリソースが作成される', () => {
+  it('creates resources following the Dev naming convention (ApiDev, etc.)', () => {
     template.hasResourceProperties('AWS::CodeDeploy::Application', { ApplicationName: 'ApiDev' });
     template.hasResourceProperties('AWS::CodeBuild::Project', { Name: 'ApiMigrateDev' });
   });
 
-  it('クロスアカウントロールがPipelineアカウントからの引き受けのみを信頼する', () => {
+  it('the cross-account role trusts only assumption from the Pipeline account', () => {
     template.hasResourceProperties('AWS::IAM::Role', {
       RoleName: 'pipeline-cross-account-dev',
     });

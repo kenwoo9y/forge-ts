@@ -11,13 +11,13 @@ const databaseUrl = `postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_
 const adapter = new PrismaPg({ connectionString: databaseUrl });
 
 /**
- * Integrationテストで実DBに接続するために使うPrismaクライアント。
+ * Prisma client used to connect to the real DB in integration tests.
  */
 export const testPrisma = new PrismaClient({ adapter });
 
 /**
- * 全テーブルをTRUNCATEしてテストデータをリセットする。
- * Prismaのリポジトリ実装は呼び出しごとに別コネクションを使いうるため、トランザクションロールバックではなくテストごとのTRUNCATEで分離する。
+ * Resets test data by TRUNCATE-ing all tables.
+ * Since the Prisma repository implementation may use a different connection on each call, isolation is achieved via a TRUNCATE per test rather than a transaction rollback.
  */
 export async function resetDatabase(): Promise<void> {
   await testPrisma.$executeRawUnsafe('TRUNCATE TABLE "users" RESTART IDENTITY CASCADE');

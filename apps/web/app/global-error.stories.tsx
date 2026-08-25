@@ -12,7 +12,7 @@ const meta = {
   tags: ["autodocs"],
   args: {
     error: Object.assign(
-      new globalThis.Error("アプリケーションエラーが発生しました"),
+      new globalThis.Error("An application error has occurred"),
       {
         digest: "digest-001",
       },
@@ -30,7 +30,7 @@ export const WithLongMessage: Story = {
   args: {
     error: Object.assign(
       new globalThis.Error(
-        "ルートレイアウトの初期化中に予期しないエラーが発生しました。ページを再読み込みしてください。",
+        "An unexpected error occurred while initializing the root layout. Please reload the page.",
       ),
       { digest: "digest-002" },
     ),

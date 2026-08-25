@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { signToken, verifyToken } from './jwt.js';
 
 describe('signToken / verifyToken', () => {
-  it('署名したトークンを同じシークレットで検証すると、元のペイロードが復元できる', async () => {
+  it('restores the original payload when verifying a signed token with the same secret', async () => {
     const token = await signToken({ username: 'alice' }, 'secret');
 
     const payload = await verifyToken(token, 'secret');
@@ -10,13 +10,13 @@ describe('signToken / verifyToken', () => {
     expect(payload.username).toBe('alice');
   });
 
-  it('異なるシークレットで検証すると、エラーがスローされる', async () => {
+  it('throws an error when verifying with a different secret', async () => {
     const token = await signToken({ username: 'alice' }, 'secret');
 
     await expect(verifyToken(token, 'wrong-secret')).rejects.toThrow();
   });
 
-  it('期限切れのトークンを検証すると、エラーがスローされる', async () => {
+  it('throws an error when verifying an expired token', async () => {
     vi.useFakeTimers();
     const token = await signToken({ username: 'alice' }, 'secret', '1s');
     vi.advanceTimersByTime(2000);
@@ -25,7 +25,7 @@ describe('signToken / verifyToken', () => {
     vi.useRealTimers();
   });
 
-  it('不正な形式の文字列を検証すると、エラーがスローされる', async () => {
+  it('throws an error when verifying a malformed string', async () => {
     await expect(verifyToken('not-a-jwt', 'secret')).rejects.toThrow();
   });
 });

@@ -3,8 +3,8 @@ import { ValueObject } from '../../shared/valueObject.js';
 const USERNAME_MAX_LENGTH = 30;
 
 /**
- * ユーザー名を表す値オブジェクト。
- * 1文字以上・30文字以内の検証を行う。
+ * Value object representing a username.
+ * Validates that it is at least 1 character and at most 30 characters.
  */
 export class Username extends ValueObject<string> {
   private constructor(value: string) {
@@ -12,10 +12,10 @@ export class Username extends ValueObject<string> {
   }
 
   /**
-   * 文字列から `Username` 値オブジェクトを生成する。
-   * @param value ユーザー名文字列
-   * @returns 生成された `Username` インスタンス
-   * @throws 空文字または最大文字数超過の場合にエラーをスローする
+   * Creates a `Username` value object from a string.
+   * @param value The username string
+   * @returns The created `Username` instance
+   * @throws An error if the string is empty or exceeds the maximum length
    */
   static create(value: string): Username {
     /* c8 ignore start -- validated by Zod schema before reaching domain */
@@ -30,8 +30,8 @@ export class Username extends ValueObject<string> {
   }
 
   /**
-   * ユーザー名の文字列表現を返す。
-   * @returns ユーザー名文字列
+   * Returns the string representation of the username.
+   * @returns The username string
    */
   toString(): string {
     return this.value;

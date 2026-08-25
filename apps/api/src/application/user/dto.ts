@@ -1,36 +1,36 @@
 /**
- * ユーザー作成ユースケースの入力データ型。
+ * Input data type for the create-user use case.
  */
 export type CreateUserInput = {
-  /** ユーザー名 */
+  /** Username */
   username: string;
-  /** 平文パスワード */
+  /** Plain-text password */
   password: string;
 };
 
 /**
- * ユーザー作成ユースケースの出力データ型。
+ * Output data type for the create-user use case.
  */
 export type CreateUserOutput = {
-  /** ユーザー名 */
+  /** Username */
   username: string;
-  /** 作成日時 */
+  /** Creation timestamp */
   createdAt: Date;
-  /** 更新日時 */
+  /** Update timestamp */
   updatedAt: Date;
 };
 
 /**
- * ユーザーの読み取り専用モデル。
- * クエリサービスがデータストアから直接返すフラットなデータ構造。
+ * Read-only model of a user.
+ * A flat data structure returned directly from the data store by the query service.
  */
 export type UserReadModel = {
-  /** 内部ID */
+  /** Internal ID */
   id: bigint;
-  /** ユーザー名 */
+  /** Username */
   username: string;
-  /** 作成日時 */
+  /** Creation timestamp */
   createdAt: Date;
-  /** 更新日時 */
+  /** Update timestamp */
   updatedAt: Date;
 };

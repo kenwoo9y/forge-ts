@@ -3,32 +3,32 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import type { Construct } from 'constructs';
 
 export interface NetworkStackProps extends cdk.StackProps {
-  /** 使用する AZ 数（デフォルト: 2） */
+  /** Number of AZs to use (default: 2) */
   maxAzs?: number;
-  /** ECR・Secrets Manager・CloudWatch Logs の VPC エンドポイントを作成するか（デフォルト: false）
-   *  stg/prod では true を推奨（AWS 内部通信に限定）
-   *  dev では NAT Gateway で代替可能 */
+  /** Whether to create VPC endpoints for ECR, Secrets Manager, and CloudWatch Logs (default: false)
+   *  Recommended to set true for stg/prod (keeps traffic within AWS's internal network)
+   *  For dev, a NAT Gateway can be used instead */
   enableVpcEndpoints?: boolean;
 }
 
 /**
- * ネットワーク層のスタック
- * VPC・サブネット・セキュリティグループを定義する
+ * Network layer stack.
+ * Defines the VPC, subnets, and security groups.
  */
 export class NetworkStack extends cdk.Stack {
-  /** アプリケーション全体で共有するVPC */
+  /** VPC shared across the whole application */
   public readonly vpc: ec2.Vpc;
-  /** ALB用セキュリティグループ（インターネットからのHTTP/HTTPSを許可） */
+  /** Security group for the ALB (allows HTTP/HTTPS from the internet) */
   public readonly albSecurityGroup: ec2.SecurityGroup;
-  /** ECS Fargate用セキュリティグループ（ALBからのトラフィックのみ許可） */
+  /** Security group for ECS Fargate (allows only traffic from the ALB) */
   public readonly ecsSecurityGroup: ec2.SecurityGroup;
-  /** RDS用セキュリティグループ（ECSからのPostgreSQL接続のみ許可） */
+  /** Security group for RDS (allows only PostgreSQL connections from ECS) */
   public readonly rdsSecurityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props?: NetworkStackProps) {
     super(scope, id, props);
 
-    // VPC: パブリック/プライベートサブネット各AZ、NATゲートウェイ1つ
+    // VPC: public/private subnets in each AZ, one NAT gateway
     this.vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: props?.maxAzs ?? 2,
       natGateways: 1,
@@ -46,7 +46,7 @@ export class NetworkStack extends cdk.Stack {
       ],
     });
 
-    // ALB用セキュリティグループ: インターネットからのHTTP(80)/HTTPS(443)を許可
+    // Security group for the ALB: allows HTTP(80)/HTTPS(443) from the internet
     this.albSecurityGroup = new ec2.SecurityGroup(this, 'AlbSecurityGroup', {
       vpc: this.vpc,
       description: 'Security group for ALB',
@@ -63,7 +63,7 @@ export class NetworkStack extends cdk.Stack {
       'Allow HTTPS from internet'
     );
 
-    // ECS用セキュリティグループ: ALBからのポート3000のみ許可
+    // Security group for ECS: allows only port 3000 from the ALB
     this.ecsSecurityGroup = new ec2.SecurityGroup(this, 'EcsSecurityGroup', {
       vpc: this.vpc,
       description: 'Security group for ECS Fargate',
@@ -75,7 +75,7 @@ export class NetworkStack extends cdk.Stack {
       'Allow traffic from ALB'
     );
 
-    // RDS用セキュリティグループ: ECSからのPostgreSQL(5432)のみ許可、アウトバウンド禁止
+    // Security group for RDS: allows only PostgreSQL(5432) from ECS, outbound disabled
     this.rdsSecurityGroup = new ec2.SecurityGroup(this, 'RdsSecurityGroup', {
       vpc: this.vpc,
       description: 'Security group for RDS PostgreSQL',
@@ -87,7 +87,7 @@ export class NetworkStack extends cdk.Stack {
       'Allow PostgreSQL from ECS'
     );
 
-    // S3 (Gatewayタイプ: 無料) — ECRイメージレイヤーの取得に使用
+    // S3 (Gateway type: free) — used to fetch ECR image layers
     this.vpc.addGatewayEndpoint('S3Endpoint', {
       service: ec2.GatewayVpcEndpointAwsService.S3,
     });

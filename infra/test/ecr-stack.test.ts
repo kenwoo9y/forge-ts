@@ -8,30 +8,30 @@ describe('EcrStack', () => {
   const stack = new EcrStack(app, 'TestEcrStack');
   const template = Template.fromStack(stack);
 
-  it('ECRリポジトリが2つ作成される', () => {
+  it('creates 2 ECR repositories', () => {
     template.resourceCountIs('AWS::ECR::Repository', 2);
   });
 
-  it('DEV APIリポジトリが正しい名前で作成される', () => {
+  it('creates the DEV API repository with the correct name', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/api-dev',
     });
   });
 
-  it('DEV Webリポジトリが正しい名前で作成される', () => {
+  it('creates the DEV Web repository with the correct name', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/web-dev',
     });
   });
 
-  it('プッシュ時のイメージスキャンが有効化される', () => {
+  it('enables image scanning on push', () => {
     const repos = template.findResources('AWS::ECR::Repository');
     for (const repo of Object.values(repos)) {
       expect(repo.Properties?.ImageScanningConfiguration?.ScanOnPush).toBe(true);
     }
   });
 
-  it('ライフサイクルポリシーが設定される（最新20件保持）', () => {
+  it('sets a lifecycle policy (keep the last 20 images)', () => {
     const repos = template.findResources('AWS::ECR::Repository');
     for (const repo of Object.values(repos)) {
       const policyText: string = repo.Properties?.LifecyclePolicy?.LifecyclePolicyText ?? '';
@@ -39,51 +39,51 @@ describe('EcrStack', () => {
     }
   });
 
-  it('削除保護が設定される（RETAIN）', () => {
+  it('sets deletion protection (RETAIN)', () => {
     template.hasResource('AWS::ECR::Repository', {
       DeletionPolicy: 'Retain',
       UpdateReplacePolicy: 'Retain',
     });
   });
 
-  it('タグのミュータビリティがMUTABLEに設定される', () => {
+  it('sets tag mutability to MUTABLE', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       ImageTagMutability: 'MUTABLE',
     });
   });
 });
 
-describe('EcrStack (stgAccountId指定)', () => {
+describe('EcrStack (stgAccountId specified)', () => {
   const app = new cdk.App();
   const stack = new EcrStack(app, 'TestEcrStackCrossAccount', {
     stgAccountId: '222222222222',
   });
   const template = Template.fromStack(stack);
 
-  it('DEV+STGで4つのリポジトリが作成される', () => {
+  it('creates 4 repositories for DEV+STG', () => {
     template.resourceCountIs('AWS::ECR::Repository', 4);
   });
 
-  it('STG APIリポジトリが作成される', () => {
+  it('creates the STG API repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/api-stg',
     });
   });
 
-  it('STG Webリポジトリが作成される', () => {
+  it('creates the STG Web repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/web-stg',
     });
   });
 
-  it('STGリポジトリにSTGアカウントからのpullを許可するリソースポリシーが付与される', () => {
+  it('grants the STG repository a resource policy allowing pull from the STG account', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/api-stg',
       RepositoryPolicyText: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({
             Sid: 'CrossAccountPull',
-            // AccountPrincipal は Stack非依存のためパーティションを `Fn::Join` で組み立てる
+            // AccountPrincipal is stack-independent, so the partition is built with `Fn::Join`
             Principal: Match.objectLike({
               AWS: Match.objectLike({
                 'Fn::Join': Match.arrayWith([
@@ -98,7 +98,7 @@ describe('EcrStack (stgAccountId指定)', () => {
     });
   });
 
-  it('DEVリポジトリにはクロスアカウントのリソースポリシーが付与されない', () => {
+  it('does not grant the DEV repository a cross-account resource policy', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/api-dev',
       RepositoryPolicyText: Match.absent(),
@@ -106,14 +106,14 @@ describe('EcrStack (stgAccountId指定)', () => {
   });
 });
 
-describe('EcrStack (devAccountId指定、PIPELINE_ACCOUNT_ID使用時)', () => {
+describe('EcrStack (devAccountId specified, when using PIPELINE_ACCOUNT_ID)', () => {
   const app = new cdk.App();
   const stack = new EcrStack(app, 'TestEcrStackDevCrossAccount', {
     devAccountId: '444444444444',
   });
   const template = Template.fromStack(stack);
 
-  it('DEVリポジトリにDevアカウントからのpullを許可するリソースポリシーが付与される', () => {
+  it('grants the DEV repository a resource policy allowing pull from the Dev account', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/api-dev',
       RepositoryPolicyText: Match.objectLike({
@@ -135,7 +135,7 @@ describe('EcrStack (devAccountId指定、PIPELINE_ACCOUNT_ID使用時)', () => {
   });
 });
 
-describe('EcrStack (stgAccountId + prodAccountId指定)', () => {
+describe('EcrStack (stgAccountId + prodAccountId specified)', () => {
   const app = new cdk.App();
   const stack = new EcrStack(app, 'TestEcrStackFull', {
     stgAccountId: '222222222222',
@@ -143,17 +143,17 @@ describe('EcrStack (stgAccountId + prodAccountId指定)', () => {
   });
   const template = Template.fromStack(stack);
 
-  it('DEV+STG+PRODで6つのリポジトリが作成される', () => {
+  it('creates 6 repositories for DEV+STG+PROD', () => {
     template.resourceCountIs('AWS::ECR::Repository', 6);
   });
 
-  it('PROD APIリポジトリが作成される', () => {
+  it('creates the PROD API repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/api-prod',
     });
   });
 
-  it('PROD Webリポジトリが作成される', () => {
+  it('creates the PROD Web repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
       RepositoryName: 'forge-ts/web-prod',
     });

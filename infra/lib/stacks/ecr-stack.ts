@@ -11,26 +11,30 @@ export interface EcrRepos {
 
 export interface EcrStackProps extends cdk.StackProps {
   /**
-   * DEV アカウントのID。指定時のみDEVリポジトリにクロスアカウントpull権限を付与する
-   * （PipelineアカウントとDevアカウントが異なる、すなわち`PIPELINE_ACCOUNT_ID`が
-   * 指定されている場合にのみ渡す。通常はPipelineとDevが同居するため未指定でよい）
+   * The DEV account's ID. When specified, cross-account pull permission is granted to the
+   * DEV repository (pass this only when the Pipeline account and Dev account differ, i.e.
+   * when `PIPELINE_ACCOUNT_ID` is specified; normally Pipeline and Dev share an account, so
+   * this can be left unset).
    */
   devAccountId?: string;
-  /** STG アカウントのID。指定時のみSTGリポジトリを作成し、クロスアカウントpull権限を付与する */
+  /** The STG account's ID. When specified, the STG repository is created and granted cross-account pull permission. */
   stgAccountId?: string;
-  /** PROD アカウントのID。指定時のみPRODリポジトリを作成し、クロスアカウントpull権限を付与する */
+  /** The PROD account's ID. When specified, the PROD repository is created and granted cross-account pull permission. */
   prodAccountId?: string;
 }
 
 /**
- * ECRリポジトリスタック
- * 環境ごとに api / web のリポジトリペアを管理する
- * DEV は常に作成。STG/PROD は対応するアカウントIDが指定されている場合のみ作成する
- * （DEV/STG/PRODは別アカウントにデプロイするため、アカウントIDの有無がそのまま「そのアカウントが用意され、利用可能か」を表す唯一のフラグになる）
+ * ECR repository stack.
+ * Manages an api / web repository pair for each environment.
+ * DEV is always created. STG/PROD are created only when the corresponding account ID is
+ * specified (since DEV/STG/PROD deploy to separate accounts, whether an account ID is present
+ * is the single flag indicating whether that account has been provisioned and is available).
  *
- * ECRはこのスタックのアカウント（Pipelineアカウント。デフォルトはDevと同居）に集約する。
- * STG/PROD（および必要であればDEV）のECSタスク実行ロールは`AmazonECSTaskExecutionRolePolicy`（Resource: "*"）でpullのIAM権限自体は持っているため、
- * リポジトリ側のリソースポリシーで対象アカウントを許可プリンシパルに追加するだけでクロスアカウントpullが可能になる
+ * ECR is consolidated in this stack's account (the Pipeline account; by default, shared with Dev).
+ * The ECS task execution roles for STG/PROD (and DEV, where applicable) already have the IAM
+ * permission to pull via `AmazonECSTaskExecutionRolePolicy` (Resource: "*"), so cross-account
+ * pull just requires adding the target account as an allowed principal in the repository's
+ * resource policy.
  */
 export class EcrStack extends cdk.Stack {
   public readonly dev: EcrRepos;

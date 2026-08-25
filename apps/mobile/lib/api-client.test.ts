@@ -17,7 +17,7 @@ describe('api.get', () => {
     mockFetch.mockResolvedValue(mockResponse({ ok: true, json: () => Promise.resolve({ id: 1 }) }));
   });
 
-  it('GET リクエストを正しい URL に送信する', async () => {
+  it('sends a GET request to the correct URL', async () => {
     await api.get('/users');
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/users',
@@ -25,7 +25,7 @@ describe('api.get', () => {
     );
   });
 
-  it('Content-Type: application/json ヘッダーを付与する', async () => {
+  it('attaches a Content-Type: application/json header', async () => {
     await api.get('/users');
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
@@ -35,7 +35,7 @@ describe('api.get', () => {
     );
   });
 
-  it('追加ヘッダーをリクエストに付与する', async () => {
+  it('attaches extra headers to the request', async () => {
     await api.get('/users', { headers: { Authorization: 'Bearer token' } });
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
@@ -45,7 +45,7 @@ describe('api.get', () => {
     );
   });
 
-  it('レスポンスの JSON を返す', async () => {
+  it('returns the response JSON', async () => {
     const result = await api.get('/users');
     expect(result).toEqual({ id: 1 });
   });
@@ -56,7 +56,7 @@ describe('api.post', () => {
     mockFetch.mockResolvedValue(mockResponse({ ok: true, json: () => Promise.resolve({ id: 1 }) }));
   });
 
-  it('POST リクエストを JSON body 付きで送信する', async () => {
+  it('sends a POST request with a JSON body', async () => {
     await api.post('/users', { name: 'test' });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/users',
@@ -64,7 +64,7 @@ describe('api.post', () => {
     );
   });
 
-  it('body が undefined の場合：body なしで送信する', async () => {
+  it('when body is undefined: sends without a body', async () => {
     await api.post('/users');
     expect(mockFetch).toHaveBeenCalledWith(
       expect.any(String),
@@ -78,7 +78,7 @@ describe('api.patch', () => {
     mockFetch.mockResolvedValue(mockResponse({ ok: true, json: () => Promise.resolve({ id: 1 }) }));
   });
 
-  it('PATCH リクエストを JSON body 付きで送信する', async () => {
+  it('sends a PATCH request with a JSON body', async () => {
     await api.patch('/users/1', { name: 'updated' });
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/users/1',
@@ -92,7 +92,7 @@ describe('api.delete', () => {
     mockFetch.mockResolvedValue(mockResponse({ ok: true, status: 204 }));
   });
 
-  it('DELETE リクエストを正しい URL に送信する', async () => {
+  it('sends a DELETE request to the correct URL', async () => {
     await api.delete('/users/1');
     expect(mockFetch).toHaveBeenCalledWith(
       'http://localhost:3000/users/1',
@@ -100,35 +100,35 @@ describe('api.delete', () => {
     );
   });
 
-  it('204 レスポンスの場合：undefined を返す', async () => {
+  it('when the response is 204: returns undefined', async () => {
     const result = await api.delete('/users/1');
     expect(result).toBeUndefined();
   });
 });
 
-describe('エラーハンドリング', () => {
+describe('error handling', () => {
   it.each([
-    ['INVALID_CREDENTIALS', 'ユーザー名またはパスワードが正しくありません'],
-    ['USERNAME_REQUIRED', 'ユーザー名は必須です'],
-    ['USERNAME_DUPLICATE', 'このユーザー名はすでに使用されています'],
-    ['USER_NOT_FOUND', 'ユーザーが見つかりません'],
-    ['INTERNAL_SERVER_ERROR', '予期しないエラーが発生しました'],
-  ])('エラーコード "%s" の場合："%s" をスローする', async (code, message) => {
+    ['INVALID_CREDENTIALS', 'Incorrect username or password'],
+    ['USERNAME_REQUIRED', 'Username is required'],
+    ['USERNAME_DUPLICATE', 'This username is already taken'],
+    ['USER_NOT_FOUND', 'User not found'],
+    ['INTERNAL_SERVER_ERROR', 'An unexpected error occurred'],
+  ])('when the error code is "%s": throws "%s"', async (code, message) => {
     mockFetch.mockResolvedValue(mockResponse({ ok: false, json: () => Promise.resolve({ code }) }));
     await expect(api.get('/test')).rejects.toThrow(message);
   });
 
-  it('未知のエラーコードの場合：デフォルトメッセージをスローする', async () => {
+  it('when the error code is unknown: throws the default message', async () => {
     mockFetch.mockResolvedValue(
       mockResponse({ ok: false, json: () => Promise.resolve({ code: 'UNKNOWN_CODE' }) })
     );
-    await expect(api.get('/test')).rejects.toThrow('予期しないエラーが発生しました');
+    await expect(api.get('/test')).rejects.toThrow('An unexpected error occurred');
   });
 
-  it('レスポンス JSON のパースに失敗した場合：デフォルトメッセージをスローする', async () => {
+  it('when parsing the response JSON fails: throws the default message', async () => {
     mockFetch.mockResolvedValue(
       mockResponse({ ok: false, json: () => Promise.reject(new Error('invalid json')) })
     );
-    await expect(api.get('/test')).rejects.toThrow('予期しないエラーが発生しました');
+    await expect(api.get('/test')).rejects.toThrow('An unexpected error occurred');
   });
 });

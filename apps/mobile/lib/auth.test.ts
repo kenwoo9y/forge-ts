@@ -20,7 +20,7 @@ describe('signIn', () => {
     vi.mocked(api.post).mockResolvedValue({ token: 'jwt-token', username: 'testuser' });
   });
 
-  it('api.post を /auth/signin に username と password で呼ぶ', async () => {
+  it('calls api.post to /auth/signin with username and password', async () => {
     await signIn('testuser', 'password123');
     expect(api.post).toHaveBeenCalledWith('/auth/signin', {
       username: 'testuser',
@@ -28,24 +28,24 @@ describe('signIn', () => {
     });
   });
 
-  it('取得した token を storage に保存する', async () => {
+  it('saves the returned token to storage', async () => {
     await signIn('testuser', 'password123');
     expect(storage.setToken).toHaveBeenCalledWith('jwt-token');
   });
 
-  it('取得した username を storage に保存する', async () => {
+  it('saves the returned username to storage', async () => {
     await signIn('testuser', 'password123');
     expect(storage.setUsername).toHaveBeenCalledWith('testuser');
   });
 
-  it('api.post がエラーをスローした場合：そのままエラーを伝播する', async () => {
-    vi.mocked(api.post).mockRejectedValue(new Error('ユーザーが見つかりません'));
-    await expect(signIn('unknown', 'pass')).rejects.toThrow('ユーザーが見つかりません');
+  it('when api.post throws an error: propagates the error as-is', async () => {
+    vi.mocked(api.post).mockRejectedValue(new Error('User not found'));
+    await expect(signIn('unknown', 'pass')).rejects.toThrow('User not found');
   });
 });
 
 describe('signOut', () => {
-  it('storage.clear を呼ぶ', async () => {
+  it('calls storage.clear', async () => {
     await signOut();
     expect(storage.clear).toHaveBeenCalled();
   });

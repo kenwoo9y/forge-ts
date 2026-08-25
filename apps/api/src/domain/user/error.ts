@@ -1,9 +1,9 @@
 /**
- * ユーザー名が既に使用されている場合にスローされるエラー。
+ * Error thrown when a username is already in use.
  */
 export class UsernameDuplicateError extends Error {
   /**
-   * @param username 重複したユーザー名
+   * @param username The duplicated username
    */
   constructor(username: string) {
     super(`Username '${username}' is already taken`);

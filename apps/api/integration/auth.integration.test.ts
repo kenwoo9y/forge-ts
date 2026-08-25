@@ -5,7 +5,7 @@ import { testPrisma } from './testClient.js';
 
 describe('Auth API (integration)', () => {
   describe('POST /users → POST /auth/signin', () => {
-    it('サインアップしたユーザーでサインインするとJWTが発行される', async () => {
+    it('issues a JWT when signing in with a signed-up user', async () => {
       const username = 'alice';
       const password = 'password123';
 
@@ -33,7 +33,7 @@ describe('Auth API (integration)', () => {
       expect(body.token.split('.')).toHaveLength(3);
     });
 
-    it('パスワードが間違っている場合：401を返す', async () => {
+    it('returns 401 when the password is incorrect', async () => {
       await app.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,7 +51,7 @@ describe('Auth API (integration)', () => {
       expect(body.code).toBe(ErrorCode.INVALID_CREDENTIALS);
     });
 
-    it('存在しないユーザーの場合：401を返す', async () => {
+    it('returns 401 when the user does not exist', async () => {
       const res = await app.request('/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

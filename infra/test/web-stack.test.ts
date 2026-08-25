@@ -27,23 +27,23 @@ function buildWebStack(
 describe('WebStack', () => {
   const template = buildWebStack(new cdk.App(), 'Ecs');
 
-  it('ECSクラスターが作成される', () => {
+  it('creates an ECS cluster', () => {
     template.resourceCountIs('AWS::ECS::Cluster', 1);
   });
 
-  it('Fargateサービスが作成される', () => {
+  it('creates a Fargate service', () => {
     template.resourceCountIs('AWS::ECS::Service', 1);
   });
 
-  it('タスク定義が作成される', () => {
+  it('creates a task definition', () => {
     template.resourceCountIs('AWS::ECS::TaskDefinition', 1);
   });
 
-  it('ALBが作成される', () => {
+  it('creates an ALB', () => {
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::LoadBalancer', 1);
   });
 
-  it('コンテナがポート3001を使用する', () => {
+  it('the container uses port 3001', () => {
     template.hasResourceProperties('AWS::ECS::TaskDefinition', {
       ContainerDefinitions: Match.arrayWith([
         Match.objectLike({
@@ -53,7 +53,7 @@ describe('WebStack', () => {
     });
   });
 
-  it('タスクがプライベートサブネットに配置される', () => {
+  it('places the task in a private subnet', () => {
     template.hasResourceProperties('AWS::ECS::Service', {
       NetworkConfiguration: Match.objectLike({
         AwsvpcConfiguration: Match.objectLike({
@@ -63,7 +63,7 @@ describe('WebStack', () => {
     });
   });
 
-  it('NODE_ENV=productionが設定される', () => {
+  it('sets NODE_ENV=production', () => {
     template.hasResourceProperties('AWS::ECS::TaskDefinition', {
       ContainerDefinitions: Match.arrayWith([
         Match.objectLike({
@@ -75,7 +75,7 @@ describe('WebStack', () => {
     });
   });
 
-  it('API_URLが環境変数に設定される', () => {
+  it('sets API_URL as an environment variable', () => {
     template.hasResourceProperties('AWS::ECS::TaskDefinition', {
       ContainerDefinitions: Match.arrayWith([
         Match.objectLike({
@@ -93,13 +93,13 @@ describe('WebStack (CODE_DEPLOY)', () => {
     deploymentController: ecs.DeploymentControllerType.CODE_DEPLOY,
   });
 
-  it('CODE_DEPLOYデプロイコントローラーが設定される', () => {
+  it('sets the CODE_DEPLOY deployment controller', () => {
     template.hasResourceProperties('AWS::ECS::Service', {
       DeploymentController: { Type: 'CODE_DEPLOY' },
     });
   });
 
-  it('タスクがプライベートサブネットに配置される', () => {
+  it('places the task in a private subnet', () => {
     template.hasResourceProperties('AWS::ECS::Service', {
       NetworkConfiguration: Match.objectLike({
         AwsvpcConfiguration: Match.objectLike({ AssignPublicIp: 'DISABLED' }),
@@ -107,17 +107,17 @@ describe('WebStack (CODE_DEPLOY)', () => {
     });
   });
 
-  it('ブルー・グリーン用に2つのターゲットグループが作成される', () => {
+  it('creates two target groups for blue/green', () => {
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::TargetGroup', 2);
   });
 
-  it('本番用(80)とテスト用(8080)の2つのリスナーが作成される', () => {
+  it('creates two listeners, for production (80) and test (8080)', () => {
     template.resourceCountIs('AWS::ElasticLoadBalancingV2::Listener', 2);
     template.hasResourceProperties('AWS::ElasticLoadBalancingV2::Listener', { Port: 80 });
     template.hasResourceProperties('AWS::ElasticLoadBalancingV2::Listener', { Port: 8080 });
   });
 
-  it('コンテナがポート3001を使用する', () => {
+  it('the container uses port 3001', () => {
     template.hasResourceProperties('AWS::ECS::TaskDefinition', {
       ContainerDefinitions: Match.arrayWith([
         Match.objectLike({

@@ -6,9 +6,9 @@ function envSuffix(envName: EnvName): string {
 }
 
 /**
- * ECSタスク定義のfamily名。クロスアカウントの`ecs describe-task-definition`は
- * revision付きARN（トークン）をアカウントを跨いで参照できないため、
- * revisionを省略できるfamily名（＝最新のACTIVEリビジョンを指す）で統一する。
+ * The family name of the ECS task definition. Cross-account `ecs describe-task-definition`
+ * cannot resolve a revision-qualified ARN (token) across accounts, so we standardize on
+ * the family name without a revision (which refers to the latest ACTIVE revision instead).
  */
 export function taskDefFamily(appName: AppName, envName: EnvName): string {
   return `${envName}-${appName.toLowerCase()}`;

@@ -8,7 +8,8 @@ on:
       - "infra/**"
       - ".github/workflows/infra-deploy.yaml"
 
-# app-deploy.yaml と同じグループを共有し、CDKによるインフラ更新とアプリのイメージビルド・ECS Blue/Greenデプロイが同時に走らないようにする
+# Shares the same group as app-deploy.yaml so that a CDK infra update and an app
+# image build / ECS Blue-Green deploy never run at the same time.
 concurrency:
   group: infra-app-deploy-lock
   cancel-in-progress: false
@@ -39,9 +40,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # PIPELINE/STG/PROD_ACCOUNT_IDはsecretsのため通常はGitHub側で自動マスクされるが、
-      # cdk synth/deployの出力（クロスアカウントロールARN等）で加工された形で出力されると自動マスクをすり抜ける場合があるため、念のため明示的にマスク登録する
-      # 認証情報を設定する前に登録することで、Configure AWS credentials自体の出力にアカウントIDが含まれていた場合も確実にマスクされるようにする
+      # PIPELINE/STG/PROD_ACCOUNT_ID are secrets, so GitHub normally masks them automatically,
+      # but cdk synth/deploy output (e.g. cross-account role ARNs) can transform them in a way
+      # that slips past automatic masking, so register an explicit mask as a safety net.
+      # Registering the mask before configuring credentials also ensures it's masked even if
+      # Configure AWS credentials' own output happens to include an account ID.
       - name: Mask AWS account ID
         env:
           ROLE_ARN: ${{ secrets.AWS_INFRA_DEPLOY_ROLE_ARN }}

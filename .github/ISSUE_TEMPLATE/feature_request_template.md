@@ -1,22 +1,22 @@
 ---
-name: "🚀 機能リクエスト"
-about: "機能追加・改修など"
+name: "🚀 Feature request"
+about: "New features, improvements, etc."
 title: ''
 labels: 'enhancement'
 assignees: ''
 
 ---
 
-## 機能リクエスト
+## Feature Request
 
-### 問題の内容
-<!--- 問題の内容を簡潔に説明してください。例: [...]の際に問題があります -->
+### What's the problem?
+<!--- Briefly describe the problem. e.g. There's an issue when [...] -->
 
-### 希望する解決策
-<!--- 実現したい内容を簡潔に説明してください。考慮した欠点があれば追加してください。 -->
+### Desired solution
+<!--- Briefly describe what you'd like to happen. Add any drawbacks you've considered. -->
 
-### 検討した代替案
-<!--- 検討した代替解決策や機能について簡潔に説明してください。 -->
+### Alternatives considered
+<!--- Briefly describe any alternative solutions or features you've considered. -->
 
-### 学習性、ドキュメント、採用、移行戦略
-<!--- 可能であれば、ユーザーがこの機能をどのように使用できるかを説明し、ドキュメントのバージョンを書いてください。スクリーンショットやデザインがあれば追加してください。  -->
+### Learnability, documentation, adoption, migration strategy
+<!--- If applicable, describe how users would use this feature and note any documentation changes needed. Add screenshots or designs if you have them. -->

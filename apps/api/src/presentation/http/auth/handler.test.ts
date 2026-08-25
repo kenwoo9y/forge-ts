@@ -36,7 +36,7 @@ describe('Auth Endpoints', () => {
   });
 
   describe('POST /auth/signin', () => {
-    it('正しい認証情報の場合：200を返しtokenとusernameが含まれる', async () => {
+    it('returns 200 with token and username when credentials are correct', async () => {
       const passwordHash = hashSync('password123', 10);
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
         new User(BigInt(1), Username.create('testuser'), passwordHash, now, now)
@@ -54,7 +54,7 @@ describe('Auth Endpoints', () => {
       expect(body.username).toBe('testuser');
     });
 
-    it('存在しないユーザー名の場合：401を返しエラーメッセージが含まれる', async () => {
+    it('returns 401 with an error message when the username does not exist', async () => {
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(null);
 
       const res = await app.request('/auth/signin', {
@@ -68,7 +68,7 @@ describe('Auth Endpoints', () => {
       expect(body.code).toBe(ErrorCode.INVALID_CREDENTIALS);
     });
 
-    it('パスワードが誤っている場合：401を返しエラーメッセージが含まれる', async () => {
+    it('returns 401 with an error message when the password is incorrect', async () => {
       const passwordHash = hashSync('password123', 10);
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
         new User(BigInt(1), Username.create('testuser'), passwordHash, now, now)
@@ -85,7 +85,7 @@ describe('Auth Endpoints', () => {
       expect(body.code).toBe(ErrorCode.INVALID_CREDENTIALS);
     });
 
-    it('passwordHashがnullのユーザーの場合：401を返す', async () => {
+    it('returns 401 when the user has a null passwordHash', async () => {
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
         new User(BigInt(1), Username.create('testuser'), null, now, now)
       );
@@ -101,7 +101,7 @@ describe('Auth Endpoints', () => {
       expect(body.code).toBe(ErrorCode.INVALID_CREDENTIALS);
     });
 
-    it('usernameが空の場合：400または422を返す', async () => {
+    it('returns 400 or 422 when username is empty', async () => {
       const res = await app.request('/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,7 +112,7 @@ describe('Auth Endpoints', () => {
       expect(res.status).toBeLessThan(500);
     });
 
-    it('passwordが8文字未満の場合：400または422を返す', async () => {
+    it('returns 400 or 422 when password is fewer than 8 characters', async () => {
       const res = await app.request('/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -123,7 +123,7 @@ describe('Auth Endpoints', () => {
       expect(res.status).toBeLessThan(500);
     });
 
-    it('リクエストボディが空の場合：400または422を返す', async () => {
+    it('returns 400 or 422 when the request body is empty', async () => {
       const res = await app.request('/auth/signin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

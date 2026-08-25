@@ -18,9 +18,9 @@ import { useAuth } from '@/providers';
 const signinSchema = z.object({
   username: z
     .string()
-    .min(1, 'ユーザー名を入力してください')
-    .max(30, 'ユーザー名は30文字以内で入力してください'),
-  password: z.string().min(1, 'パスワードを入力してください'),
+    .min(1, 'Please enter your username')
+    .max(30, 'Username must be at most 30 characters'),
+  password: z.string().min(1, 'Please enter your password'),
 });
 
 type SigninInput = z.infer<typeof signinSchema>;
@@ -50,7 +50,7 @@ export default function SigninScreen() {
         router.replace('/(app)');
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '予期しないエラーが発生しました');
+      setError(e instanceof Error ? e.message : 'An unexpected error occurred');
     }
   }
 
@@ -60,18 +60,18 @@ export default function SigninScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View className="flex-1 items-center justify-center px-6">
-        <Text className="text-3xl font-bold text-gray-900 mb-8">ログイン</Text>
+        <Text className="text-3xl font-bold text-gray-900 mb-8">Log in</Text>
 
         <View className="w-full bg-white rounded-2xl p-6 shadow-sm">
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1.5">ユーザー名</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1.5">Username</Text>
             <Controller
               control={control}
               name="username"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900"
-                  placeholder="ユーザー名を入力"
+                  placeholder="Enter your username"
                   autoCapitalize="none"
                   autoCorrect={false}
                   onBlur={onBlur}
@@ -86,14 +86,14 @@ export default function SigninScreen() {
           </View>
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1.5">パスワード</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1.5">Password</Text>
             <Controller
               control={control}
               name="password"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900"
-                  placeholder="パスワードを入力"
+                  placeholder="Enter your password"
                   secureTextEntry
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -116,7 +116,7 @@ export default function SigninScreen() {
             {isSubmitting ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-medium text-base">ログイン</Text>
+              <Text className="text-white font-medium text-base">Log in</Text>
             )}
           </TouchableOpacity>
         </View>

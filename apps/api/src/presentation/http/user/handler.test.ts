@@ -43,7 +43,7 @@ describe('User Endpoints', () => {
   });
 
   describe('POST /users', () => {
-    it('ユーザーを作成する場合：201を返しユーザー情報が正しい', async () => {
+    it('returns 201 with correct user information when creating a user', async () => {
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(null);
       vi.mocked(mockUserRepository.save).mockResolvedValue(
         new User(BigInt(1), Username.create('testuser'), null, now, now)
@@ -64,7 +64,7 @@ describe('User Endpoints', () => {
       });
     });
 
-    it('ユーザー名が重複する場合：409を返す', async () => {
+    it('returns 409 when the username is a duplicate', async () => {
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(
         new User(BigInt(1), Username.create('testuser'), null, now, now)
       );
@@ -80,7 +80,7 @@ describe('User Endpoints', () => {
       expect(body.code).toBe(ErrorCode.USERNAME_DUPLICATE);
     });
 
-    it('重複以外のエラーの場合：エラーが伝播する', async () => {
+    it('propagates the error for errors other than duplication', async () => {
       vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(null);
       vi.mocked(mockUserRepository.save).mockRejectedValue(new Error('connection lost'));
 
@@ -93,7 +93,7 @@ describe('User Endpoints', () => {
       expect(res.status).toBe(500);
     });
 
-    it('ユーザー名が30文字を超える場合：400を返す', async () => {
+    it('returns 400 when the username exceeds 30 characters', async () => {
       const res = await app.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,7 +105,7 @@ describe('User Endpoints', () => {
   });
 
   describe('GET /users/:username', () => {
-    it('ユーザーが存在する場合：200を返しユーザー情報を取得できる', async () => {
+    it('returns 200 and retrieves the user information when the user exists', async () => {
       vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue({
         id: BigInt(1),
         username: 'testuser',
@@ -120,7 +120,7 @@ describe('User Endpoints', () => {
       expect(body.username).toBe('testuser');
     });
 
-    it('ユーザーが存在しない場合：404を返す', async () => {
+    it('returns 404 when the user does not exist', async () => {
       vi.mocked(mockUserQueryService.findByUsername).mockResolvedValue(null);
 
       const res = await app.request('/users/nonexistent');
@@ -132,7 +132,7 @@ describe('User Endpoints', () => {
   });
 });
 
-describe('User Handler ガード節', () => {
+describe('User Handler guard clauses', () => {
   const mockDeps = {
     createUserUseCase: { execute: vi.fn() },
     getUserUseCase: { execute: vi.fn() },
@@ -145,7 +145,7 @@ describe('User Handler ガード節', () => {
     } as unknown as Context;
   }
 
-  it('getUser: usernameが未設定の場合：400を返す', async () => {
+  it('getUser: returns 400 when username is not set', async () => {
     const handler = createUserHandler(mockDeps);
     const c = makeMockContext();
     await handler.getUser(c);

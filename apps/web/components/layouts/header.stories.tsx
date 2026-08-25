@@ -19,16 +19,16 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// グローバルデコレーターの SessionProvider(session=null) により未認証状態で表示
+// Shown unauthenticated via the global decorator's SessionProvider (session=null)
 export const Unauthenticated: Story = {};
 
-// ストーリーレベルのデコレーターで session を上書きし、ログイン済み状態を表示
+// Overrides the session with a story-level decorator to show the signed-in state
 export const Authenticated: Story = {
   decorators: [
     (Story) => (
       <SessionProvider
         session={{
-          user: { name: "山田 太郎" },
+          user: { name: "John Doe" },
           expires: "2099-01-01",
           apiToken: "mock-token",
         }}

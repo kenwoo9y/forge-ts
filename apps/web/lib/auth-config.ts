@@ -4,11 +4,11 @@ import Credentials from "next-auth/providers/credentials";
 import { apiClient } from "./hono-client";
 
 /**
- * NextAuth v5 設定ファクトリー。
- * CredentialsProvider でユーザー名・パスワード認証を行い、
- * Hono API の /auth/signin エンドポイントで JWT を取得する。
+ * NextAuth v5 config factory.
+ * Authenticates with username/password via the CredentialsProvider,
+ * obtaining a JWT from the Hono API's /auth/signin endpoint.
  *
- * @returns NextAuth 設定オブジェクト
+ * @returns NextAuth config object
  */
 export function createAuthConfig(): NextAuthConfig {
   return {

@@ -7,15 +7,15 @@ export interface AuthHandlerDeps {
 }
 
 /**
- * 認証関連の HTTP ハンドラーを生成する。
+ * Creates the HTTP handlers related to authentication.
  */
 export function createAuthHandler(deps: AuthHandlerDeps) {
   return {
     /**
-     * サインインハンドラー。
-     * POST /auth/signin に対応する。
-     * @param c Hono コンテキスト
-     * @returns JWT トークンとユーザー名（200）、または認証エラー（401）
+     * Sign-in handler.
+     * Handles POST /auth/signin.
+     * @param c The Hono context
+     * @returns The JWT token and username (200), or an authentication error (401)
      */
     signIn: async (c: Context) => {
       const body = await c.req.json<{ username: string; password: string }>();

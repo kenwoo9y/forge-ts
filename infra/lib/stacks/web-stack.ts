@@ -6,34 +6,34 @@ import type { Construct } from 'constructs';
 import { EcsFargateService } from '../constructs/ecs-fargate-service';
 
 export interface WebStackProps extends cdk.StackProps {
-  /** NetworkStackで定義したVPC */
+  /** VPC defined in NetworkStack */
   vpc: ec2.Vpc;
-  /** バックエンドAPIのURL */
+  /** URL of the backend API */
   apiUrl: string;
-  /** Secrets ManagerにあるAuth.js署名シークレット */
+  /** Auth.js signing secret in Secrets Manager */
   authSecret: secretsmanager.ISecret;
-  /** コンテナイメージ（デフォルト: apps/webのDockerfileからビルド） */
+  /** Container image (default: built from apps/web's Dockerfile) */
   image?: ecs.ContainerImage;
-  /** コンテナ起動コマンド上書き（プレースホルダ用途） */
+  /** Container start command override (for placeholder use) */
   command?: string[];
-  /** タスクのCPUユニット数（デフォルト: 256） */
+  /** Task CPU units (default: 256) */
   cpu?: number;
-  /** タスクのメモリ (MiB)（デフォルト: 512） */
+  /** Task memory in MiB (default: 512) */
   memoryLimitMiB?: number;
-  /** 起動タスク数（デフォルト: 1） */
+  /** Desired task count (default: 1) */
   desiredCount?: number;
-  /** デプロイコントローラー（デフォルト: ECS） */
+  /** Deployment controller (default: ECS) */
   deploymentController?: ecs.DeploymentControllerType;
-  /** タスク定義のfamily名（デプロイコントローラーが CODE_DEPLOY の場合のみ使用） */
+  /** Task definition family name (used only when the deployment controller is CODE_DEPLOY) */
   family?: string;
 }
 
 /**
- * Webフロントエンド層のスタック
- * Next.jsアプリをECS Fargateでホストする
+ * Web frontend layer stack.
+ * Hosts the Next.js app on ECS Fargate.
  */
 export class WebStack extends cdk.Stack {
-  /** ECS Fargateサービスのコンストラクト */
+  /** ECS Fargate service construct */
   public readonly ecsFargateService: EcsFargateService;
 
   constructor(scope: Construct, id: string, props: WebStackProps) {
@@ -71,8 +71,8 @@ export class WebStack extends cdk.Stack {
       deploymentController,
     });
 
-    // AUTH_URLを明示的に渡すことでAuth.jsのURL推測に依存しないようにする
-    // ALBのDNS名は自分自身（WebService）のものを参照するため、コンテナ生成後に追加する
+    // Pass AUTH_URL explicitly so we don't rely on Auth.js's URL guessing
+    // Since the ALB's DNS name refers to this service itself (WebService), it's added after the container is created
     this.ecsFargateService.taskDefinition.defaultContainer?.addEnvironment(
       'AUTH_URL',
       `http://${this.ecsFargateService.loadBalancer.loadBalancerDnsName}`

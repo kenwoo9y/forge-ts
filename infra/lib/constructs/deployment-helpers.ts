@@ -9,7 +9,7 @@ import type { ApiStack } from '../stacks/api-stack';
 import type { EnvResources, LocalAppEnvConfig } from '../stacks/pipeline-types';
 import type { WebStack } from '../stacks/web-stack';
 
-/** ApiStack/WebStackのライブ参照から`LocalAppEnvConfig`を組み立てる */
+/** Builds a `LocalAppEnvConfig` from a live reference to an ApiStack/WebStack */
 export function buildAppEnvConfig(
   appStack: ApiStack | WebStack,
   repository: ecr.IRepository,
@@ -32,7 +32,7 @@ export function buildAppEnvConfig(
   };
 }
 
-/** CodeDeployのデプロイメントグループ（Blue/Green）を作成する */
+/** Creates a CodeDeploy deployment group (Blue/Green) */
 export function buildDeploymentGroup(
   scope: Construct,
   id: string,
@@ -66,11 +66,12 @@ export function buildDeploymentGroup(
 }
 
 /**
- * Prisma マイグレーション用 CodeBuild プロジェクト。
- * RDSはECSのセキュリティグループ以外からの接続を許可していないため、CodeBuildを同じVPC内に配置してRDSに直接到達させる。
- * ECRからのpullはIAM側（プロジェクトのロール）に直接許可を付与する形にしており、
- * リポジトリ側（`ecr-stack.ts`）のリソースポリシーと組み合わせることで、
- * 同一アカウント・クロスアカウントいずれの`repository`でも動作する。
+ * A CodeBuild project for running Prisma migrations.
+ * RDS only allows connections from the ECS security group, so we place CodeBuild in the
+ * same VPC to let it reach RDS directly.
+ * ECR pull permissions are granted directly to the IAM side (the project's role); combined
+ * with the resource policy on the repository side (`ecr-stack.ts`), this works whether
+ * `repository` is same-account or cross-account.
  */
 export function buildMigrateProject(
   scope: Construct,
@@ -125,11 +126,12 @@ export function buildMigrateProject(
             'REGISTRY=$(echo "$IMAGE_URI" | cut -d/ -f1)',
             'aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"',
             'docker pull "$IMAGE_URI"',
-            // デプロイ対象イメージから db パッケージ（schema.prisma / migrations）を取り出す
-            // イメージ側は非rootで動くため、バインドマウント先への書き込み用にrootで実行する
+            // Extract the db package (schema.prisma / migrations) from the deployment target image
+            // The image runs as non-root, so run as root here to allow writing to the bind mount target
             'docker run --rm --user root --entrypoint sh -v "$(pwd)":/out "$IMAGE_URI" -c "cp -rL /app/node_modules/db /out/db-package"',
             'cd db-package',
-            // CodeBuildは環境変数を直接注入するのでdotenv自体不要なため、dotenv依存のない最小構成で上書きする
+            // CodeBuild injects environment variables directly, so dotenv itself is unnecessary;
+            // override with a minimal config that has no dotenv dependency
             'printf \'import { defineConfig, env } from "prisma/config";\\nexport default defineConfig({\\n  schema: "./prisma/schema.prisma",\\n  migrations: { path: "./prisma/migrations" },\\n  datasource: { url: env("DATABASE_URL") },\\n});\\n\' > prisma.config.ts',
             'PRISMA_VERSION=$(node -e "console.log(require(\'./package.json\').devDependencies.prisma)")',
             'npm install --no-save "prisma@$PRISMA_VERSION"',

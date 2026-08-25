@@ -11,16 +11,18 @@ on:
       - "pnpm-lock.yaml"
       - ".github/workflows/app-deploy.yaml"
 
-# infra-deploy.yaml と同じグループを共有し、CDKによるインフラ更新とアプリのイメージビルド・ECS Blue/Greenデプロイが同時に走らないようにする
-# （cancel-in-progressをtrueにすると、実行中のdocker push/cdk deployが中断され不整合な状態を招くおそれがあるためfalseで待機させる）
+# Shares the same group as infra-deploy.yaml so that a CDK infra update and an app
+# image build / ECS Blue-Green deploy never run at the same time.
+# (cancel-in-progress is false, not true: cancelling a docker push/cdk deploy mid-run
+# risks leaving things in an inconsistent state, so this waits instead.)
 concurrency:
   group: infra-app-deploy-lock
   cancel-in-progress: false
 
 jobs:
-  # ─── 承認ゲート ──────────────────────────────────────────────────────────────
-  # matrix化されたbuild-push-scanに直接environmentを付けると、api/webそれぞれで
-  # 個別に承認が要求されるため、承認だけを行う専用ジョブを前段に置く
+  # ─── Approval gate ──────────────────────────────────────────────────────────
+  # Attaching `environment` directly to the build-push-scan job's matrix would require
+  # a separate approval for each of api/web, so a dedicated approval-only job runs first.
   approve:
     name: Approval Gate
     runs-on: ubuntu-latest
@@ -49,8 +51,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # ビルド・pushコマンドのログにそのまま出ないようマスクする
-      # 認証情報を設定する前に登録することで、Configure AWS credentials自体の出力にアカウントIDが含まれていた場合も確実にマスクされるようにする
+      # Mask it so it doesn't show up as-is in build/push command logs.
+      # Registering the mask before configuring credentials also ensures it's masked
+      # even if Configure AWS credentials' own output happens to include the account ID.
       - name: Mask AWS account ID
         env:
           ROLE_ARN: ${{ secrets.AWS_APP_DEPLOY_ROLE_ARN }}
@@ -90,8 +93,10 @@ jobs:
           REPOSITORY: ${{ matrix.ecr_repository }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # ECRはpush後に非同期でスキャンを登録するため、直後に describe するとScanNotFoundException になることがある。aws ecr wait image-scan-complete の
-          # waiterはこの例外をリトライ対象として扱わず即座に失敗するため、スキャンが登録されるまで先に手動でポーリングする。
+          # ECR registers the scan asynchronously after the push, so describing it right away can
+          # throw ScanNotFoundException. The aws ecr wait image-scan-complete waiter doesn't treat
+          # that exception as retryable and fails immediately, so poll manually first until the
+          # scan is registered.
           echo "Waiting for image scan to be registered..."
           for i in $(seq 1 30); do
             if aws ecr describe-image-scan-findings \

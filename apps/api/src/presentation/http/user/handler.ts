@@ -6,28 +6,28 @@ import type { IGetUserUseCase } from '../../../application/user/query/getUserUse
 import { UsernameDuplicateError } from '../../../domain/user/error.js';
 
 /**
- * ユーザーハンドラーの依存関係インターフェース。
- * ユーザー操作に必要なすべてのユースケースを保持する。
+ * Dependency interface for the user handler.
+ * Holds all the use cases needed for user operations.
  */
 export interface UserHandlerDeps {
-  /** ユーザー作成ユースケース */
+  /** The create-user use case */
   createUserUseCase: ICreateUserUseCase;
-  /** ユーザー取得ユースケース */
+  /** The get-user use case */
   getUserUseCase: IGetUserUseCase;
 }
 
 /**
- * ユーザー関連のHTTPハンドラーを生成する。
- * @param deps ハンドラーが使用するユースケースの依存関係
- * @returns ユーザー操作のハンドラーオブジェクト
+ * Creates the HTTP handlers related to users.
+ * @param deps The use-case dependencies used by the handlers
+ * @returns An object containing the user operation handlers
  */
 export function createUserHandler(deps: UserHandlerDeps) {
   return {
     /**
-     * ユーザーを作成するハンドラー。
-     * POST /users に対応する。
-     * @param c Honoのコンテキスト
-     * @returns 作成されたユーザー情報（201）、またはエラー（400 / 409）
+     * Handler for creating a user.
+     * Handles POST /users.
+     * @param c The Hono context
+     * @returns The created user's information (201), or an error (400 / 409)
      */
     createUser: async (c: Context) => {
       const validated = await c.req.json<CreateUserInput>();
@@ -59,10 +59,10 @@ export function createUserHandler(deps: UserHandlerDeps) {
     },
 
     /**
-     * ユーザーを取得するハンドラー。
-     * GET /users/:username に対応する。
-     * @param c Honoのコンテキスト
-     * @returns ユーザー情報（200）、またはエラー（404）
+     * Handler for getting a user.
+     * Handles GET /users/:username.
+     * @param c The Hono context
+     * @returns The user's information (200), or an error (404)
      */
     getUser: async (c: Context) => {
       const username = c.req.param('username');

@@ -10,8 +10,8 @@ import { NetworkStack } from '../lib/stacks/network-stack';
 import { PipelineStack } from '../lib/stacks/pipeline-stack';
 import { WebStack } from '../lib/stacks/web-stack';
 
-// PipelineStack のテスト用セットアップ
-// account/region を指定することで ARN 組み立てを確定的にする
+// Test setup for PipelineStack
+// Specifying account/region makes the construction of ARNs deterministic
 const TEST_ENV = { account: '123456789012', region: 'ap-northeast-1' };
 
 function buildPipelineStack() {
@@ -27,7 +27,7 @@ function buildPipelineStack() {
   const sharedStack = new cdk.Stack(app, 'TestSharedStack', { env: TEST_ENV });
   const jwtSecret = new secretsmanager.Secret(sharedStack, 'JwtSecret');
 
-  // DEV のみ作成（stg/prod は指定しない）
+  // Create only DEV (don't specify stg/prod)
   const ecrStack = new EcrStack(app, 'TestEcrStack', { env: TEST_ENV });
 
   const image = ecs.ContainerImage.fromRegistry('nginx');
@@ -77,39 +77,39 @@ function buildPipelineStack() {
 }
 
 describe('PipelineStack', () => {
-  // 重いセットアップを一度だけ実行する
+  // Run the heavy setup only once
   const template = buildPipelineStack();
 
   // ─── GitHub OIDC ────────────────────────────────────────────────────────────
 
-  describe('GitHub OIDC プロバイダー', () => {
-    it('OIDCプロバイダーが1つ作成される', () => {
+  describe('GitHub OIDC provider', () => {
+    it('creates one OIDC provider', () => {
       template.resourceCountIs('Custom::AWSCDKOpenIdConnectProvider', 1);
     });
 
-    it('GitHub Actions のエンドポイントが設定される', () => {
+    it('sets the GitHub Actions endpoint', () => {
       template.hasResourceProperties('Custom::AWSCDKOpenIdConnectProvider', {
         Url: 'https://token.actions.githubusercontent.com',
       });
     });
 
-    it('aud クレームに sts.amazonaws.com が設定される', () => {
+    it('sets sts.amazonaws.com in the aud claim', () => {
       template.hasResourceProperties('Custom::AWSCDKOpenIdConnectProvider', {
         ClientIDList: Match.arrayWith(['sts.amazonaws.com']),
       });
     });
   });
 
-  // ─── OIDC ロール ─────────────────────────────────────────────────────────────
+  // ─── OIDC roles ──────────────────────────────────────────────────────────────
 
-  describe('アプリデプロイ用 OIDC ロール', () => {
-    it('ロールが正しい名前で作成される', () => {
+  describe('OIDC role for app deployment', () => {
+    it('creates the role with the correct name', () => {
       template.hasResourceProperties('AWS::IAM::Role', {
         RoleName: 'github-actions-app-deploy',
       });
     });
 
-    it('main ブランチへの push に限定した信頼ポリシーが設定される', () => {
+    it('sets a trust policy scoped to pushes to the main branch', () => {
       template.hasResourceProperties('AWS::IAM::Role', {
         RoleName: 'github-actions-app-deploy',
         AssumeRolePolicyDocument: Match.objectLike({
@@ -127,7 +127,7 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('ECR push 権限が付与される', () => {
+    it('grants ECR push permission', () => {
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: Match.arrayWith([
@@ -140,8 +140,8 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('GetAuthorizationToken 権限が付与される', () => {
-      // 単一アクションは CDK が文字列として生成する
+    it('grants GetAuthorizationToken permission', () => {
+      // CDK generates a single action as a string
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: Match.arrayWith([
@@ -156,14 +156,14 @@ describe('PipelineStack', () => {
     });
   });
 
-  describe('インフラデプロイ用 OIDC ロール', () => {
-    it('ロールが正しい名前で作成される', () => {
+  describe('OIDC role for infra deployment', () => {
+    it('creates the role with the correct name', () => {
       template.hasResourceProperties('AWS::IAM::Role', {
         RoleName: 'github-actions-infra-deploy',
       });
     });
 
-    it('main Environment にスコープされた信頼ポリシーが設定される', () => {
+    it('sets a trust policy scoped to the main Environment', () => {
       template.hasResourceProperties('AWS::IAM::Role', {
         RoleName: 'github-actions-infra-deploy',
         AssumeRolePolicyDocument: Match.objectLike({
@@ -181,7 +181,7 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('CDK bootstrap ロールへの AssumeRole 権限が付与される', () => {
+    it('grants AssumeRole permission on the CDK bootstrap role', () => {
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: Match.arrayWith([
@@ -201,12 +201,12 @@ describe('PipelineStack', () => {
 
   // ─── CodePipeline ────────────────────────────────────────────────────────────
 
-  describe('パイプライン', () => {
-    it('パイプラインが2つ作成される（API・Web）', () => {
+  describe('pipeline', () => {
+    it('creates 2 pipelines (API, Web)', () => {
       template.resourceCountIs('AWS::CodePipeline::Pipeline', 2);
     });
 
-    it('アプリパイプラインがDEVの3ステージで構成される（Source→GenerateDev→DeployDev）', () => {
+    it('the app pipeline consists of 3 DEV stages (Source -> GenerateDev -> DeployDev)', () => {
       template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
         Name: 'ApiAppPipeline',
         Stages: Match.arrayWith([
@@ -217,7 +217,7 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('MigrateDevステージはApiパイプラインのみに存在し、Webパイプラインには存在しない', () => {
+    it('the MigrateDev stage exists only in the Api pipeline, not the Web pipeline', () => {
       template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
         Name: 'ApiAppPipeline',
         Stages: Match.arrayWith([Match.objectLike({ Name: 'MigrateDev' })]),
@@ -228,7 +228,7 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('ECRソースアクションが設定される（APIパイプライン）', () => {
+    it('sets the ECR source action (API pipeline)', () => {
       template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
         Name: 'ApiAppPipeline',
         Stages: Match.arrayWith([
@@ -250,8 +250,8 @@ describe('PipelineStack', () => {
 
   // ─── CodeBuild ───────────────────────────────────────────────────────────────
 
-  describe('CodeBuild プロジェクト', () => {
-    it('インフラデプロイOIDCロールが CDK bootstrap ロールへの AssumeRole 権限を持つ', () => {
+  describe('CodeBuild project', () => {
+    it('the infra deploy OIDC role has AssumeRole permission on the CDK bootstrap role', () => {
       template.hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: Match.arrayWith([
@@ -265,7 +265,7 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('Generate プロジェクトが ECS describe 権限を持つ', () => {
+    it('the Generate project has ECS describe permission', () => {
       const policies = template.findResources('AWS::IAM::Policy');
       const hasEcsDescribe = Object.values(policies).some((p) => {
         const statements = p.Properties?.PolicyDocument?.Statement ?? [];
@@ -282,27 +282,27 @@ describe('PipelineStack', () => {
   // ─── CodeDeploy ──────────────────────────────────────────────────────────────
 
   describe('CodeDeploy', () => {
-    it('ECSアプリケーションが2つ作成される（API・Web）', () => {
+    it('creates 2 ECS applications (API, Web)', () => {
       template.hasResourceProperties('AWS::CodeDeploy::Application', {
         ComputePlatform: 'ECS',
       });
-      // API と Web で合計2つ
+      // 2 total, for API and Web
       const apps = template.findResources('AWS::CodeDeploy::Application');
       expect(Object.keys(apps).length).toBe(2);
     });
 
-    it('デプロイメントグループが2つ作成される（API・Web）', () => {
+    it('creates 2 deployment groups (API, Web)', () => {
       const groups = template.findResources('AWS::CodeDeploy::DeploymentGroup');
       expect(Object.keys(groups).length).toBe(2);
     });
 
-    it('段階的デプロイ設定が使用される（LINEAR_10PERCENT_EVERY_1MINUTES）', () => {
+    it('uses the linear deployment configuration (LINEAR_10PERCENT_EVERY_1MINUTES)', () => {
       template.hasResourceProperties('AWS::CodeDeploy::DeploymentGroup', {
         DeploymentConfigName: 'CodeDeployDefault.ECSLinear10PercentEvery1Minutes',
       });
     });
 
-    it('デプロイ失敗時の自動ロールバックが有効化される', () => {
+    it('enables automatic rollback on deployment failure', () => {
       template.hasResourceProperties('AWS::CodeDeploy::DeploymentGroup', {
         AutoRollbackConfiguration: {
           Enabled: true,
@@ -311,7 +311,7 @@ describe('PipelineStack', () => {
       });
     });
 
-    it('Blue/Green デプロイスタイルが設定される', () => {
+    it('sets the Blue/Green deployment style', () => {
       template.hasResourceProperties('AWS::CodeDeploy::DeploymentGroup', {
         DeploymentStyle: {
           DeploymentOption: 'WITH_TRAFFIC_CONTROL',
@@ -322,9 +322,9 @@ describe('PipelineStack', () => {
   });
 });
 
-// ─── STG 昇格ありのテスト ──────────────────────────────────────────────────────
+// ─── Tests with STG promotion ─────────────────────────────────────────────────
 
-describe('PipelineStack (stgAccountId指定)', () => {
+describe('PipelineStack (stgAccountId specified)', () => {
   const STG_ACCOUNT_ID = '222222222222';
 
   const template = (() => {
@@ -339,7 +339,7 @@ describe('PipelineStack (stgAccountId指定)', () => {
     const sharedStack = new cdk.Stack(app, 'TestSharedStack', { env: TEST_ENV });
     const jwtSecret = new secretsmanager.Secret(sharedStack, 'JwtSecret');
 
-    // STGはDevとは別アカウント。ECRのみDevアカウントに集約される
+    // STG is a separate account from Dev. Only ECR is consolidated in the Dev account
     const ecrStack = new EcrStack(app, 'TestEcrStack', {
       env: TEST_ENV,
       stgAccountId: STG_ACCOUNT_ID,
@@ -366,9 +366,9 @@ describe('PipelineStack (stgAccountId指定)', () => {
       deploymentController: ecs.DeploymentControllerType.CODE_DEPLOY,
     });
 
-    // STGのデプロイ実行リソース（DeploymentGroup・マイグレーション用CodeBuild）は
-    // STGアカウントの DeployTargetStack 側に作成されるため、PipelineStack のテストでは
-    // アカウントIDのみを渡す（詳細は deploy-target-stack.test.ts で検証する）
+    // STG's deployment-execution resources (DeploymentGroup, the migration CodeBuild project)
+    // are created on the STG account's DeployTargetStack side, so the PipelineStack test only
+    // passes the account ID (details are verified in deploy-target-stack.test.ts)
     const pipelineStack = new PipelineStack(app, 'TestPipelineStack', {
       env: TEST_ENV,
       githubOrg: 'acme',
@@ -392,7 +392,7 @@ describe('PipelineStack (stgAccountId指定)', () => {
     return Template.fromStack(pipelineStack);
   })();
 
-  it('APIパイプラインにSTG承認・昇格・デプロイステージが追加される', () => {
+  it('adds STG approval, promotion, and deploy stages to the API pipeline', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -407,12 +407,12 @@ describe('PipelineStack (stgAccountId指定)', () => {
     });
   });
 
-  it('PipelineStack自体にはDEV用の2つのデプロイメントグループのみ作成される（STG分はDeployTargetStack側）', () => {
+  it('PipelineStack itself creates only the 2 deployment groups for DEV (STG lives on the DeployTargetStack side)', () => {
     const groups = template.findResources('AWS::CodeDeploy::DeploymentGroup');
     expect(Object.keys(groups).length).toBe(2);
   });
 
-  it('DEV→STG昇格用の CodeBuild プロジェクトが作成される', () => {
+  it('creates the DEV -> STG promotion CodeBuild project', () => {
     template.hasResourceProperties('AWS::CodeBuild::Project', {
       Name: 'ApiPromoteToStg',
     });
@@ -421,7 +421,7 @@ describe('PipelineStack (stgAccountId指定)', () => {
     });
   });
 
-  it('DeployStgアクションが命名規則から導出したDeploymentGroupを参照する', () => {
+  it('the DeployStg action references a DeploymentGroup derived from the naming convention', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -441,7 +441,7 @@ describe('PipelineStack (stgAccountId指定)', () => {
     });
   });
 
-  it('MigrateStgアクションがクロスアカウントロールでCodeBuildプロジェクトを起動する', () => {
+  it('the MigrateStg action starts the CodeBuild project with the cross-account role', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -458,21 +458,21 @@ describe('PipelineStack (stgAccountId指定)', () => {
     });
   });
 
-  it('MigrateStgステージはWebパイプラインには存在しない', () => {
+  it('the MigrateStg stage does not exist in the Web pipeline', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'WebAppPipeline',
       Stages: Match.not(Match.arrayWith([Match.objectLike({ Name: 'MigrateStg' })])),
     });
   });
 
-  it('アーティファクトバケットのKMSキーがクロスアカウント用に作成される（crossAccountKeys: true、Api/Web各パイプライン分で2つ）', () => {
+  it('creates a KMS key for the artifact bucket for cross-account use (crossAccountKeys: true, 2 total for the Api/Web pipelines)', () => {
     template.resourceCountIs('AWS::KMS::Key', 2);
   });
 });
 
-// ─── PROD 昇格ありのテスト ────────────────────────────────────────────────────
+// ─── Tests with PROD promotion ────────────────────────────────────────────────
 
-describe('PipelineStack (prodAccountId指定)', () => {
+describe('PipelineStack (prodAccountId specified)', () => {
   const STG_ACCOUNT_ID = '222222222222';
   const PROD_ACCOUNT_ID = '444444444444';
 
@@ -488,7 +488,7 @@ describe('PipelineStack (prodAccountId指定)', () => {
     const sharedStack = new cdk.Stack(app, 'TestSharedStack', { env: TEST_ENV });
     const jwtSecret = new secretsmanager.Secret(sharedStack, 'JwtSecret');
 
-    // STG/PRODはDevとは別アカウント。ECRのみDevアカウントに集約される
+    // STG/PROD are separate accounts from Dev. Only ECR is consolidated in the Dev account
     const ecrStack = new EcrStack(app, 'TestEcrStack', {
       env: TEST_ENV,
       stgAccountId: STG_ACCOUNT_ID,
@@ -516,8 +516,8 @@ describe('PipelineStack (prodAccountId指定)', () => {
       deploymentController: ecs.DeploymentControllerType.CODE_DEPLOY,
     });
 
-    // STG/PRODのデプロイ実行リソースはそれぞれのアカウントのDeployTargetStack側に作成されるため、
-    // PipelineStackのテストではアカウントIDのみを渡す
+    // STG/PROD's deployment-execution resources are created on the DeployTargetStack side of
+    // their respective accounts, so the PipelineStack test only passes the account IDs
     const pipelineStack = new PipelineStack(app, 'TestPipelineStack', {
       env: TEST_ENV,
       githubOrg: 'acme',
@@ -542,7 +542,7 @@ describe('PipelineStack (prodAccountId指定)', () => {
     return Template.fromStack(pipelineStack);
   })();
 
-  it('APIパイプラインにPROD承認・昇格・デプロイステージが追加される', () => {
+  it('adds PROD approval, promotion, and deploy stages to the API pipeline', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -555,7 +555,7 @@ describe('PipelineStack (prodAccountId指定)', () => {
     });
   });
 
-  it('STG→PROD昇格用の CodeBuild プロジェクトが作成される', () => {
+  it('creates the STG -> PROD promotion CodeBuild project', () => {
     template.hasResourceProperties('AWS::CodeBuild::Project', {
       Name: 'ApiPromoteToProd',
     });
@@ -564,7 +564,7 @@ describe('PipelineStack (prodAccountId指定)', () => {
     });
   });
 
-  it('DeployProdアクションが命名規則から導出したDeploymentGroup・クロスアカウントロールを参照する', () => {
+  it('the DeployProd action references a DeploymentGroup and cross-account role derived from the naming convention', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -584,7 +584,7 @@ describe('PipelineStack (prodAccountId指定)', () => {
     });
   });
 
-  it('MigrateProdアクションがクロスアカウントロールでCodeBuildプロジェクトを起動する', () => {
+  it('the MigrateProd action starts the CodeBuild project with the cross-account role', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -601,29 +601,29 @@ describe('PipelineStack (prodAccountId指定)', () => {
     });
   });
 
-  it('MigrateProdステージはWebパイプラインには存在しない', () => {
+  it('the MigrateProd stage does not exist in the Web pipeline', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'WebAppPipeline',
       Stages: Match.not(Match.arrayWith([Match.objectLike({ Name: 'MigrateProd' })])),
     });
   });
 
-  it('PipelineStack自体にはDEV用の2つのデプロイメントグループのみ作成される（STG/PROD分はDeployTargetStack側）', () => {
+  it('PipelineStack itself creates only the 2 deployment groups for DEV (STG/PROD live on the DeployTargetStack side)', () => {
     const groups = template.findResources('AWS::CodeDeploy::DeploymentGroup');
     expect(Object.keys(groups).length).toBe(2);
   });
 });
 
-// ─── Devがクロスアカウント（PIPELINE_ACCOUNT_ID指定）のテスト ──────────────────
+// ─── Tests when Dev is cross-account (PIPELINE_ACCOUNT_ID specified) ─────────
 
-describe('PipelineStack (devがcross-account)', () => {
+describe('PipelineStack (dev is cross-account)', () => {
   const PIPELINE_ACCOUNT_ID = '333333333333';
   const DEV_ACCOUNT_ID = TEST_ENV.account;
   const PIPELINE_ENV = { account: PIPELINE_ACCOUNT_ID, region: TEST_ENV.region };
 
   const template = (() => {
     const app = new cdk.App();
-    // Dev環境のインフラはDevアカウント（TEST_ENV）に配置
+    // The Dev environment's infrastructure is deployed to the Dev account (TEST_ENV)
     const networkStack = new NetworkStack(app, 'TestNetworkStack', { env: TEST_ENV });
     const databaseStack = new DatabaseStack(app, 'TestDatabaseStack', {
       env: TEST_ENV,
@@ -635,8 +635,9 @@ describe('PipelineStack (devがcross-account)', () => {
     const jwtSecret = new secretsmanager.Secret(sharedStack, 'JwtSecret');
     const image = ecs.ContainerImage.fromRegistry('nginx');
 
-    // PipelineStack自体はapiStack/webStackを参照しない（devがcross-accountのため）が、
-    // Devアカウント側に実際のECSリソースが存在する状態を再現するために作成しておく
+    // PipelineStack itself doesn't reference apiStack/webStack (since dev is cross-account),
+    // but we create them anyway to reproduce a state where real ECS resources exist on the
+    // Dev account side
     new ApiStack(app, 'TestApiStack', {
       env: TEST_ENV,
       vpc: networkStack.vpc,
@@ -657,14 +658,14 @@ describe('PipelineStack (devがcross-account)', () => {
       deploymentController: ecs.DeploymentControllerType.CODE_DEPLOY,
     });
 
-    // ECRはPipelineアカウントに集約される（Devとは別アカウント）
+    // ECR is consolidated in the Pipeline account (a separate account from Dev)
     const ecrStack = new EcrStack(app, 'TestEcrStack', {
       env: PIPELINE_ENV,
       devAccountId: DEV_ACCOUNT_ID,
     });
 
-    // PipelineStackはPipelineアカウントに配置。Devのデプロイ実行リソースは
-    // DevアカウントのDeployTargetStack側に作成されるため、accountIdのみ渡す
+    // PipelineStack is deployed to the Pipeline account. Dev's deployment-execution resources
+    // are created on the Dev account's DeployTargetStack side, so only accountId is passed
     const pipelineStack = new PipelineStack(app, 'TestPipelineStack', {
       env: PIPELINE_ENV,
       githubOrg: 'acme',
@@ -675,7 +676,7 @@ describe('PipelineStack (devがcross-account)', () => {
     return Template.fromStack(pipelineStack);
   })();
 
-  it('CDK bootstrapロールへのAssumeRoleが、Pipeline自身とDevアカウントの両方を対象にする', () => {
+  it('AssumeRole on the CDK bootstrap role targets both the Pipeline account itself and the Dev account', () => {
     template.hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: {
         Statement: Match.arrayWith([
@@ -692,12 +693,12 @@ describe('PipelineStack (devがcross-account)', () => {
     });
   });
 
-  it('PipelineStack自体にはDeploymentGroupが作成されない（Dev分もDeployTargetStack側）', () => {
+  it('PipelineStack itself creates no DeploymentGroup (Dev also lives on the DeployTargetStack side)', () => {
     const groups = template.findResources('AWS::CodeDeploy::DeploymentGroup');
     expect(Object.keys(groups).length).toBe(0);
   });
 
-  it('DeployDevアクションが命名規則から導出したクロスアカウントロール・DeploymentGroupを参照する', () => {
+  it('the DeployDev action references a cross-account role and DeploymentGroup derived from the naming convention', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -717,7 +718,7 @@ describe('PipelineStack (devがcross-account)', () => {
     });
   });
 
-  it('MigrateDevアクションがクロスアカウントロールでCodeBuildプロジェクトを起動する', () => {
+  it('the MigrateDev action starts the CodeBuild project with the cross-account role', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'ApiAppPipeline',
       Stages: Match.arrayWith([
@@ -734,14 +735,14 @@ describe('PipelineStack (devがcross-account)', () => {
     });
   });
 
-  it('MigrateDevステージはWebパイプラインには存在しない', () => {
+  it('the MigrateDev stage does not exist in the Web pipeline', () => {
     template.hasResourceProperties('AWS::CodePipeline::Pipeline', {
       Name: 'WebAppPipeline',
       Stages: Match.not(Match.arrayWith([Match.objectLike({ Name: 'MigrateDev' })])),
     });
   });
 
-  it('アーティファクトバケットのKMSキーがクロスアカウント用に作成される', () => {
+  it('creates a KMS key for the artifact bucket for cross-account use', () => {
     template.resourceCountIs('AWS::KMS::Key', 2);
   });
 });

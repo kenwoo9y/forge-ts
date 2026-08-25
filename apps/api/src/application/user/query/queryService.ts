@@ -3,14 +3,14 @@ import type { UserReadModel } from '../dto.js';
 export type { UserReadModel };
 
 /**
- * ユーザークエリサービスのインターフェース。
- * 読み取り専用のユーザー検索を抽象化する。
+ * Interface for the user query service.
+ * Abstracts read-only user lookups.
  */
 export interface IUserQueryService {
   /**
-   * ユーザー名でユーザーを取得する。
-   * @param username 検索するユーザー名
-   * @returns 該当するユーザーの読み取りモデル。存在しない場合は `null`
+   * Gets a user by username.
+   * @param username The username to search for
+   * @returns The matching user's read model. `null` if it does not exist
    */
   findByUsername(username: string): Promise<UserReadModel | null>;
 }

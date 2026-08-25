@@ -17,20 +17,21 @@ export interface EcsFargateServiceProps {
   memoryLimitMiB?: number;
   desiredCount?: number;
   deploymentController?: ecs.DeploymentControllerType;
-  /** ALBをインターネット向けにするか（デフォルト: true）。APIなど内部通信専用の場合は false を指定 */
+  /** Whether the ALB is internet-facing (default: true). Set to false for internal-only traffic such as an API. */
   internetFacing?: boolean;
   /**
-   * タスク定義のfamily名（deploymentController が CODE_DEPLOY の場合のみ使用）。
-   * 未指定時はCDKが構築パスから自動生成する。クロスアカウントパイプラインからの
-   * `ecs describe-task-definition`（revisionを省略してfamily名で最新ACTIVEを引く）が安定して機能するよう、明示的な指定を推奨する
+   * The task definition's family name (used only when deploymentController is CODE_DEPLOY).
+   * If not specified, CDK auto-generates it from the construct path. Specifying it explicitly
+   * is recommended so that `ecs describe-task-definition` calls from a cross-account pipeline
+   * (which look up the latest ACTIVE revision by family name, without a revision) work reliably.
    */
   family?: string;
 }
 
 /**
- * ALB + ECS Fargateサービスの再利用可能なコンストラクト
- * APIサーバー・Webアプリなど複数のサービスで共通利用する
- * deploymentController に CODE_DEPLOY を指定するとBlue/Green構成になる
+ * A reusable construct for an ALB + ECS Fargate service.
+ * Shared across multiple services such as the API server and the web app.
+ * Passing CODE_DEPLOY for deploymentController produces a Blue/Green configuration.
  */
 export class EcsFargateService extends Construct {
   public readonly cluster: ecs.Cluster;

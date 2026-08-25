@@ -4,19 +4,19 @@ import type { IUserRepository } from '../../../domain/user/repository.js';
 import { Username } from '../../../domain/user/value/username.js';
 
 /**
- * Prismaを使ったユーザーリポジトリの実装クラス。
- * `IUserRepository` インターフェースに従い、データベースへのCRUD操作を行う。
+ * Implementation class for the user repository using Prisma.
+ * Performs database CRUD operations in accordance with the `IUserRepository` interface.
  */
 export class PrismaUserRepository implements IUserRepository {
   /**
-   * @param prisma Prismaクライアント
+   * @param prisma The Prisma client
    */
   constructor(private readonly prisma: PrismaClient) {}
 
   /**
-   * ユーザーをデータベースに新規保存する。
-   * @param user 保存するユーザーエンティティ
-   * @returns 保存されたユーザーエンティティ
+   * Saves a new user to the database.
+   * @param user The user entity to save
+   * @returns The saved user entity
    */
   async save(user: User): Promise<User> {
     const created = await this.prisma.user.create({
@@ -29,9 +29,9 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   /**
-   * ユーザー名でユーザーを取得する。
-   * @param username 検索するユーザー名
-   * @returns 該当するユーザーエンティティ。存在しない場合は `null`
+   * Gets a user by username.
+   * @param username The username to search for
+   * @returns The matching user entity. `null` if it does not exist
    */
   async findByUsername(username: string): Promise<User | null> {
     const found = await this.prisma.user.findUnique({ where: { username } });
@@ -40,9 +40,9 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   /**
-   * Prismaのレコードをユーザーエンティティに変換する。
-   * @param record Prismaから取得したユーザーレコード
-   * @returns 変換されたユーザーエンティティ
+   * Converts a Prisma record into a user entity.
+   * @param record The user record fetched from Prisma
+   * @returns The converted user entity
    */
   private toEntity(record: {
     id: bigint;

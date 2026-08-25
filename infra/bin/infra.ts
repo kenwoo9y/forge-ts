@@ -12,7 +12,7 @@ import { NetworkStack } from '../lib/stacks/network-stack';
 import { type EnvResources, PipelineStack } from '../lib/stacks/pipeline-stack';
 import { WebStack } from '../lib/stacks/web-stack';
 
-// ─── ユーティリティ ─────────────────────────────────────────────────────────
+// ─── Utilities ──────────────────────────────────────────────────────────────
 
 function envInt(key: string, defaultValue: number): number {
   const val = process.env[key];
@@ -24,8 +24,9 @@ function requireEnv(value: string | undefined, name: string): string {
   return value;
 }
 
-// ─── デフォルト設定（全環境共通・最小コスト）────────────────────────────────
-// 環境ごとに増強する場合は DEV_API_CPU / STG_API_CPU / PROD_API_CPU 等の環境変数で上書きする
+// ─── Default settings (common to all environments, minimal cost) ────────────
+// To scale up a given environment, override with environment variables such as
+// DEV_API_CPU / STG_API_CPU / PROD_API_CPU
 
 const DEFAULT_API_CPU = 256;
 const DEFAULT_API_MEMORY = 512;
@@ -38,14 +39,14 @@ const DEFAULT_DB_STORAGE = 20;
 const DEFAULT_DB_MAX_STORAGE = 100;
 const DEFAULT_MAX_AZS = 2;
 
-// ─── 環境インフラ生成ファクトリ ──────────────────────────────────────────────
+// ─── Per-environment infrastructure factory ──────────────────────────────────
 
 const placeholderImage = ecs.ContainerImage.fromRegistry(
   'public.ecr.aws/nginx/nginx:stable-alpine'
 );
 
-// nginx のデフォルト設定（ポート80）を指定ポートで上書きして起動する
-// Docker ビルド不要でヘルスチェックを通過させるためのシェルコマンド
+// Overrides nginx's default config (port 80) to listen on the given port instead.
+// A shell command that lets the health check pass without needing a Docker build.
 function placeholderCommand(port: number): string[] {
   return [
     '/bin/sh',
@@ -126,12 +127,19 @@ function createEnvInfra(app: cdk.App, envName: EnvName, env: cdk.Environment): E
   };
 }
 
-// ─── アプリ ──────────────────────────────────────────────────────────────────
-// Dev/Stg/Prodはそれぞれ別のAWSアカウントにデプロイする。CI/CDパイプライン（PipelineStack）とECRは同じ「Pipelineアカウント」に同居する。
-// Pipelineアカウントは PIPELINE_ACCOUNT_ID環境変数で明示指定でき、未指定時はDevアカウント（＝cdk実行時の認証情報から自動セットされるCDK_DEFAULT_ACCOUNT）と同居する（デフォルト・追加設定不要）。
-// PIPELINE_ACCOUNT_ID を Dev と異なるアカウントに指定した場合、DevもStg/Prodと同様にクロスアカウントターゲット（DeployTargetStackが作成される）として扱われる。
-// Stg/ProdアカウントIDは認証情報から自動判別できないため STG_ACCOUNT_ID / PROD_ACCOUNT_ID環境変数で明示指定する（.env.example 参照。実アカウント作成・cdk bootstrap --trust は別途運用作業として必要）。
-// これらが設定されているかどうかが、そのまま「そのアカウントにデプロイするか」を表す唯一のフラグになる。
+// ─── App ──────────────────────────────────────────────────────────────────
+// Dev/Stg/Prod are each deployed to a separate AWS account. The CI/CD pipeline
+// (PipelineStack) and ECR live together in the same "Pipeline account".
+// The Pipeline account can be set explicitly via the PIPELINE_ACCOUNT_ID environment
+// variable; if unset, it defaults to sharing the Dev account (i.e. CDK_DEFAULT_ACCOUNT,
+// which is set automatically from the credentials used when running cdk) — this is the
+// default and requires no extra configuration.
+// If PIPELINE_ACCOUNT_ID is set to an account different from Dev, then Dev is also treated
+// as a cross-account target (a DeployTargetStack is created for it), just like Stg/Prod.
+// Stg/Prod account IDs cannot be inferred from credentials, so they must be set explicitly
+// via the STG_ACCOUNT_ID / PROD_ACCOUNT_ID environment variables (see .env.example; actually
+// creating the accounts and running `cdk bootstrap --trust` are separate operational tasks).
+// Whether these are set is the single flag that determines whether that account gets deployed to.
 
 const app = new cdk.App();
 
@@ -152,8 +160,9 @@ if ((stgAccountId || prodAccountId || devIsCrossAccount) && !region) {
 const devEnv: cdk.Environment = { account: devAccountId, region };
 const pipelineEnv: cdk.Environment = { account: pipelineAccountId, region };
 
-// ECRはPipelineアカウントに集約する（デフォルトはDevと同居）。
-// Dev（別アカウントの場合）・Stg/Prodのリポジトリには、当該アカウントからのクロスアカウントpullを許可するリソースポリシーを付与する
+// ECR is consolidated in the Pipeline account (by default, shared with Dev).
+// Repositories for Dev (when it's a separate account), Stg, and Prod are given a resource
+// policy that allows cross-account pulls from their respective account.
 const ecrStack = new EcrStack(app, 'EcrStack', {
   env: pipelineEnv,
   devAccountId: devIsCrossAccount ? devAccountId : undefined,

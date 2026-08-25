@@ -1,11 +1,11 @@
 import { defineConfig, mergeConfig } from 'vitest/config';
 import baseConfig from '../../packages/config/vitest/vitest.config.ts';
 
-// ローカル実行時は .env.integration から接続情報を読み込む（CIなど、既に環境変数が設定されている場合はファイルが存在せずスキップされる）。
+// Load connection info from .env.integration when running locally (in CI, where the environment variables are already set, the file won't exist and this is skipped).
 try {
   process.loadEnvFile('.env.integration');
 } catch {
-  // ファイルが存在しない場合は環境変数をそのまま使用
+  // If the file doesn't exist, use the environment variables as-is
 }
 
 export default mergeConfig(
@@ -15,9 +15,9 @@ export default mergeConfig(
       root: '.',
       include: ['integration/**/*.integration.test.ts'],
       setupFiles: ['./integration/setup.ts'],
-      // 全テストファイルが同一の実DBを共有し、テストごとにTRUNCATEで状態をリセットするため、ファイル並列実行を許すとTRUNCATEと他ファイルのテストが競合してしまう。
+      // All test files share the same real DB and reset state via TRUNCATE between tests, so allowing file-level parallelism would cause TRUNCATE to race with tests in other files.
       fileParallelism: false,
-      // 実DBに対する結合テストのみを対象にするため、Unitテスト向けのカバレッジ閾値は適用しない。
+      // Since this targets only integration tests against the real DB, the coverage thresholds meant for unit tests do not apply.
       coverage: {
         enabled: false,
       },

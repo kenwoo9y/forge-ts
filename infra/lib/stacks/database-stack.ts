@@ -4,28 +4,28 @@ import * as rds from 'aws-cdk-lib/aws-rds';
 import type { Construct } from 'constructs';
 
 export interface DatabaseStackProps extends cdk.StackProps {
-  /** NetworkStackで定義したVPC */
+  /** VPC defined in NetworkStack */
   vpc: ec2.Vpc;
-  /** NetworkStackで定義したRDS用セキュリティグループ */
+  /** Security group for RDS defined in NetworkStack */
   rdsSecurityGroup: ec2.SecurityGroup;
-  /** PostgreSQL データベース名 */
+  /** PostgreSQL database name */
   dbName: string;
-  /** RDSインスタンスタイプ（デフォルト: t3.micro） */
+  /** RDS instance type (default: t3.micro) */
   instanceType?: ec2.InstanceType;
-  /** 初期ストレージ容量 GB（デフォルト: 20） */
+  /** Initial storage capacity in GB (default: 20) */
   allocatedStorage?: number;
-  /** 自動スケール上限 GB（デフォルト: 100） */
+  /** Auto-scaling storage limit in GB (default: 100) */
   maxAllocatedStorage?: number;
 }
 
 /**
- * データベース層のスタック
- * RDS PostgreSQLインスタンスとSecrets Managerの認証情報を定義する
+ * Database layer stack.
+ * Defines the RDS PostgreSQL instance and its Secrets Manager credentials.
  */
 export class DatabaseStack extends cdk.Stack {
-  /** RDS PostgreSQLインスタンス */
+  /** RDS PostgreSQL instance */
   public readonly database: rds.DatabaseInstance;
-  /** Secrets Managerに保存されたDB認証情報 */
+  /** DB credentials stored in Secrets Manager */
   public readonly credentials: rds.DatabaseSecret;
 
   constructor(scope: Construct, id: string, props: DatabaseStackProps) {
@@ -40,12 +40,12 @@ export class DatabaseStack extends cdk.Stack {
       maxAllocatedStorage = 100,
     } = props;
 
-    // DB認証情報をSecrets Managerに保存
+    // Store DB credentials in Secrets Manager
     this.credentials = new rds.DatabaseSecret(this, 'DbCredentials', {
       username: 'postgres',
     });
 
-    // RDS PostgreSQLインスタンス: プライベートサブネットに配置
+    // RDS PostgreSQL instance: placed in a private subnet
     this.database = new rds.DatabaseInstance(this, 'Database', {
       engine: rds.DatabaseInstanceEngine.postgres({
         version: rds.PostgresEngineVersion.VER_16,

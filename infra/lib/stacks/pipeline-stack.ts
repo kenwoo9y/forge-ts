@@ -25,14 +25,15 @@ import type { EnvResources, LocalAppEnvConfig } from './pipeline-types';
 
 export type { EnvResources } from './pipeline-types';
 
-/** Stg/Prodアカウント（`DeployTargetStack`が配置されているアカウント）への参照 */
+/** A reference to the Stg/Prod account (the account where `DeployTargetStack` is deployed) */
 interface CrossAccountEnv {
   accountId: string;
 }
 
 /**
- * Devの配置方法。`PIPELINE_ACCOUNT_ID`未指定（デフォルト）ならPipelineと同一アカウントのため
- * ライブCDK参照（`local`）、指定時はStg/Prodと同様にクロスアカウント（`cross-account`）になる。
+ * How Dev is deployed. When `PIPELINE_ACCOUNT_ID` is unset (the default), Dev shares an account
+ * with Pipeline, so live CDK references are used (`local`); when it's set, Dev is cross-account
+ * (`cross-account`) just like Stg/Prod.
  */
 type DevTarget =
   | { kind: 'local'; resources: EnvResources }
@@ -47,15 +48,15 @@ export interface PipelineStackProps extends cdk.StackProps {
   prod?: CrossAccountEnv;
 }
 
-/** Stg/Prod・クロスアカウントDev向けのタスク定義生成CodeBuildに渡す最小限の設定 */
+/** Minimal configuration passed to the task-definition-generating CodeBuild for Stg/Prod and cross-account Dev */
 interface GenerateProjectConfig {
   taskDefFamily: string;
   containerPort: string;
-  /** 指定時、buildspec内で`sts assume-role`してからECS APIを呼ぶ（クロスアカウント用） */
+  /** When set, the buildspec calls `sts assume-role` before calling the ECS API (for cross-account) */
   crossAccountRoleArn?: string;
 }
 
-/** DEVステージで使う設定。Pipelineと同一アカウントなら`local`、別アカウントなら`cross-account` */
+/** Configuration used for the DEV stage. `local` when sharing an account with Pipeline, `cross-account` otherwise */
 type DevPipelineTarget =
   | { kind: 'local'; config: LocalAppEnvConfig; envResources: EnvResources }
   | {
@@ -66,16 +67,18 @@ type DevPipelineTarget =
     };
 
 /**
- * CI/CDパイプラインスタック（Pipelineアカウントに配置。デフォルトはDevと同居、
- * `PIPELINE_ACCOUNT_ID`指定時は別アカウント）
- * - GitHub Actions OIDC ロール（ECR push・cdk deploy・cdk diff 用）
- * - アプリパイプライン（DEV→STG→PROD の昇格モデル）
+ * CI/CD pipeline stack (deployed in the Pipeline account; shares an account with Dev by
+ * default, or a separate account when `PIPELINE_ACCOUNT_ID` is specified)
+ * - GitHub Actions OIDC roles (for ECR push, cdk deploy, cdk diff)
+ * - App pipeline (a DEV -> STG -> PROD promotion model)
  *
- * Stg/Prod、および（Pipelineと別アカウントの場合の）DevはPipelineとは別アカウントにデプロイされるため、
- * CloudFormationのクロススタック参照は使えない。
- * それらのデプロイ実行リソース（CodeDeployのDeploymentGroup・Prismaマイグレーション用CodeBuild）は
- * `DeployTargetStack`として各アカウントに作成し、ここでは`pipeline-naming.ts`の命名規則からARN/名前を逆算して
- * `fromXxxAttributes`でインポートし、`DeployTargetStack`が公開するクロスアカウントロールを`role`propで渡して呼び出す。
+ * Stg/Prod, and Dev when it's a separate account from Pipeline, are deployed to accounts
+ * other than Pipeline's, so CloudFormation cross-stack references can't be used.
+ * Their deployment-execution resources (CodeDeploy's DeploymentGroup, the CodeBuild project
+ * for Prisma migrations) are instead created per-account as `DeployTargetStack`; here we
+ * reconstruct their ARNs/names from the naming convention in `pipeline-naming.ts`, import
+ * them with `fromXxxAttributes`, and invoke them by passing the cross-account role that
+ * `DeployTargetStack` exposes via the `role` prop.
  */
 export class PipelineStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: PipelineStackProps) {
@@ -83,14 +86,14 @@ export class PipelineStack extends cdk.Stack {
 
     const { githubOrg, githubRepo, ecrStack, dev, stg, prod } = props;
 
-    // ─── GitHub OIDC プロバイダー ────────────────────────────────────────────
+    // ─── GitHub OIDC provider ─────────────────────────────────────────────────
     const githubOidcProvider = new iam.OpenIdConnectProvider(this, 'GitHubOidcProvider', {
       url: 'https://token.actions.githubusercontent.com',
       clientIds: ['sts.amazonaws.com'],
       thumbprints: ['6938fd4d98bab03faadb97b34396831e3780aea1'],
     });
 
-    // ─── OIDC ロール: アプリデプロイ用（DEV ECR push のみ） ─────────────────
+    // ─── OIDC role: for app deployment (DEV ECR push only) ───────────────────
     const appDeployOidcRole = new iam.Role(this, 'AppDeployOidcRole', {
       roleName: 'github-actions-app-deploy',
       assumedBy: new iam.WebIdentityPrincipal(githubOidcProvider.openIdConnectProviderArn, {
@@ -102,7 +105,7 @@ export class PipelineStack extends cdk.Stack {
       description: 'GitHub Actions: DEV ECR push only (app deploy)',
     });
 
-    // GitHub Actions は DEV リポジトリにのみ push する
+    // GitHub Actions pushes only to the DEV repository
     ecrStack.dev.api.grantPush(appDeployOidcRole);
     ecrStack.dev.web.grantPush(appDeployOidcRole);
 
@@ -121,7 +124,7 @@ export class PipelineStack extends cdk.Stack {
       })
     );
 
-    // ─── OIDC ロール: インフラデプロイ用（cdk deploy、main Environment にスコープ） ──
+    // ─── OIDC role: for infra deployment (cdk deploy, scoped to the main Environment) ──
     const infraDeployOidcRole = new iam.Role(this, 'InfraDeployOidcRole', {
       roleName: 'github-actions-infra-deploy',
       assumedBy: new iam.WebIdentityPrincipal(githubOidcProvider.openIdConnectProviderArn, {
@@ -133,7 +136,7 @@ export class PipelineStack extends cdk.Stack {
       description: 'GitHub Actions: cdk deploy via infra-deploy.yaml (main environment only)',
     });
 
-    // Dev（別アカウントの場合）・Stg/Prodアカウントで`cdk bootstrap --trust <Account ID>`済みであることが前提
+    // Assumes `cdk bootstrap --trust <Account ID>` has already been run for Dev (when it's a separate account) and for the Stg/Prod accounts
     infraDeployOidcRole.addToPolicy(
       new iam.PolicyStatement({
         sid: 'CdkDeploy',
@@ -147,7 +150,7 @@ export class PipelineStack extends cdk.Stack {
       })
     );
 
-    // ─── アプリパイプライン（API・Web） ───────────────────────────────────────
+    // ─── App pipeline (API, Web) ──────────────────────────────────────────────
     const devApiTarget: DevPipelineTarget =
       dev.kind === 'local'
         ? {
@@ -203,7 +206,7 @@ export class PipelineStack extends cdk.Stack {
     );
   }
 
-  // ─── アプリパイプライン（昇格モデル） ─────────────────────────────────────
+  // ─── App pipeline (promotion model) ───────────────────────────────────────
 
   private createAppPipeline(
     appName: AppName,
@@ -213,19 +216,20 @@ export class PipelineStack extends cdk.Stack {
   ): void {
     const devRepository = dev.kind === 'local' ? dev.config.repository : dev.repository;
     const containerPort = dev.kind === 'local' ? dev.config.containerPort : dev.containerPort;
-    // Prismaマイグレーションが必要なのはDBに接続するApiのみ。Webは静的なため不要
+    // Only Api, which connects to the DB, needs a Prisma migration. Web is static, so it doesn't need one.
     const needsMigration = appName === 'Api';
 
     const pipeline = new codepipeline.Pipeline(this, `${appName}AppPipeline`, {
       pipelineName: `${appName}AppPipeline`,
       restartExecutionOnUpdate: false,
-      // Devが別アカウント、またはStg/Prodへのクロスアカウントアクションがある場合、
-      // アーティファクトバケットを暗号化するカスタマー管理KMSキーが必要
+      // A customer-managed KMS key to encrypt the artifact bucket is required when Dev is a
+      // separate account, or when there are cross-account actions to Stg/Prod
       crossAccountKeys: dev.kind === 'cross-account' || Boolean(stg || prod),
     });
 
-    // Source: DEV ECR の :latest をトリガーに起動（ECRは常にPipelineアカウントに集約されるため、
-    // Devがクロスアカウントの場合でもこのステージ自体は常にPipelineアカウント内で完結する）
+    // Source: triggered by the :latest tag in DEV ECR (since ECR is always consolidated in the
+    // Pipeline account, this stage itself always completes entirely within the Pipeline account,
+    // even when Dev is a cross-account target)
     const devSource = new codepipeline.Artifact(`${appName}DevSource`);
     pipeline.addStage({
       stageName: 'Source',
@@ -239,7 +243,7 @@ export class PipelineStack extends cdk.Stack {
       ],
     });
 
-    // DEV: デプロイメントアーティファクト生成 → Blue/Green デプロイ
+    // DEV: generate deployment artifacts -> Blue/Green deploy
     const devGen = new codepipeline.Artifact(`${appName}DevGen`);
     if (dev.kind === 'local') {
       pipeline.addStage({
@@ -335,7 +339,7 @@ export class PipelineStack extends cdk.Stack {
       });
     }
 
-    // STG への昇格（stg指定時のみ）
+    // Promotion to STG (only when stg is specified)
     if (!stg) return;
 
     const stgRoleArn = crossAccountRoleArn(stg.accountId, 'stg');
@@ -413,7 +417,7 @@ export class PipelineStack extends cdk.Stack {
       ],
     });
 
-    // PROD への昇格（prod指定時のみ）
+    // Promotion to PROD (only when prod is specified)
     if (!prod) return;
 
     const prodRoleArn = crossAccountRoleArn(prod.accountId, 'prod');
@@ -492,7 +496,7 @@ export class PipelineStack extends cdk.Stack {
     });
   }
 
-  // ─── ヘルパー: クロスアカウントの DeploymentGroup をインポート ───────────────
+  // ─── Helper: import a cross-account DeploymentGroup ──────────────────────
 
   private importDeploymentGroup(
     appName: AppName,
@@ -514,7 +518,7 @@ export class PipelineStack extends cdk.Stack {
     );
   }
 
-  // ─── ヘルパー: デプロイアーティファクト生成 CodeBuild ───────────────────────
+  // ─── Helper: CodeBuild that generates deployment artifacts ────────────────
 
   private buildGenerateProject(
     id: string,
@@ -525,9 +529,9 @@ export class PipelineStack extends cdk.Stack {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         environmentVariables: {
-          // family名（revision省略）で常に最新ACTIVEリビジョンを引く。
-          // クロスアカウントの場合、cdk deployのたびに変わるrevision付きARNは
-          // アカウントを跨いで参照できないため、安定したfamily名を使う
+          // Look up the latest ACTIVE revision by family name (omitting the revision) at all times.
+          // For cross-account, the revision-qualified ARN, which changes on every cdk deploy,
+          // cannot be resolved across accounts, so we use the stable family name instead
           TASK_DEF_FAMILY: { value: config.taskDefFamily },
           CONTAINER_PORT: { value: config.containerPort },
           CONTAINER_NAME: { value: 'Container' },
@@ -577,8 +581,10 @@ export class PipelineStack extends cdk.Stack {
     return project;
   }
 
-  // ─── ヘルパー: 環境間イメージ昇格 CodeBuild ────────────────────────────────
-  // ECRはDevアカウントに集約されているため、この昇格は常にDevアカウント内（同一レジストリ内のマニフェストコピー）で完結し、クロスアカウント対応は不要
+  // ─── Helper: CodeBuild for promoting an image between environments ────────
+  // Since ECR is consolidated in the Dev account, this promotion always completes entirely
+  // within the Dev account (copying a manifest within the same registry), so no cross-account
+  // handling is needed
 
   private buildPromoteProject(
     id: string,
@@ -599,13 +605,13 @@ export class PipelineStack extends cdk.Stack {
         phases: {
           build: {
             commands: [
-              // 移行元イメージのダイジェストを取得
+              // Get the digest of the source image
               "IMAGE_URI=$(python3 -c \"import json; print(json.load(open('imageDetail.json'))['ImageURI'])\")",
               "IMAGE_DIGEST=$(echo \"$IMAGE_URI\" | awk -F'@' '{print $2}')",
-              // マニフェストを移行先リポジトリに書き込む（同一ダイジェストで :latest タグ）
+              // Write the manifest to the destination repository (tagged :latest, same digest)
               'MANIFEST=$(aws ecr batch-get-image --repository-name "$SRC_REPO" --image-ids imageDigest="$IMAGE_DIGEST" --query \'images[0].imageManifest\' --output text)',
               'aws ecr put-image --repository-name "$DST_REPO" --image-tag latest --image-manifest "$MANIFEST"',
-              // 後続ステージ用に移行先の imageDetail.json を出力
+              // Output the destination's imageDetail.json for the following stages
               'REGISTRY=$(echo "$IMAGE_URI" | cut -d\'/\' -f1)',
               'echo "{\\"ImageURI\\":\\"$REGISTRY/$DST_REPO@$IMAGE_DIGEST\\"}" > imageDetail.json',
             ],

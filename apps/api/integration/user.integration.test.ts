@@ -4,7 +4,7 @@ import { app } from '../src/app.js';
 
 describe('User API (integration)', () => {
   describe('POST /users', () => {
-    it('ユーザーを作成すると201を返し、DBに保存される', async () => {
+    it('returns 201 and persists to the DB when creating a user', async () => {
       const res = await app.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -20,7 +20,7 @@ describe('User API (integration)', () => {
       });
     });
 
-    it('ユーザー名が重複する場合：409を返す', async () => {
+    it('returns 409 when the username is a duplicate', async () => {
       await app.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -40,7 +40,7 @@ describe('User API (integration)', () => {
   });
 
   describe('GET /users/:username', () => {
-    it('ユーザーが存在する場合：200を返す', async () => {
+    it('returns 200 when the user exists', async () => {
       await app.request('/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,7 +54,7 @@ describe('User API (integration)', () => {
       expect(body.username).toBe('alice');
     });
 
-    it('ユーザーが存在しない場合：404を返す', async () => {
+    it('returns 404 when the user does not exist', async () => {
       const res = await app.request('/users/nobody');
 
       expect(res.status).toBe(404);
