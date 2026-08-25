@@ -15,6 +15,9 @@
     "**/*.tsbuildinfo"
   ],
   "words": [
+    "addgroup",
+    "adduser",
+    "apiuser",
     "appspec",
     "appsync",
     "authjs",
@@ -55,6 +58,7 @@
     "msgpackr",
     "nativewind",
     "nextauth",
+    "nextjs",
     "nodegroup",
     "opengraph",
     "opensearch",
@@ -75,6 +79,7 @@
     "turborepo",
     "unstub",
     "updateduser",
+    "uring",
     "viewports",
     "vitest",
     "weakref"
