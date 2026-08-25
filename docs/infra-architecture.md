@@ -353,6 +353,7 @@ Blue/Green側は `PipelineStack` の `CodeDeployEcsDeployAction` が本番トラ
 | 環境変数 | デフォルト | 説明 |
 |---|---|---|
 | `POSTGRES_DB` | なし（必須） | RDSのデータベース名。全環境共通の1変数（環境ごとの接頭辞なし） |
+| `{ENV}_MAX_AZS` | `2` | NetworkStackのAZ数 |
 | `{ENV}_DB_INSTANCE_TYPE` | `t3.micro` | RDS インスタンスタイプ |
 | `{ENV}_DB_ALLOCATED_STORAGE` | `20` | 初期ストレージ (GB) |
 | `{ENV}_DB_MAX_ALLOCATED_STORAGE` | `100` | 自動スケール上限 (GB) |
@@ -364,5 +365,3 @@ Blue/Green側は `PipelineStack` の `CodeDeployEcsDeployAction` が本番トラ
 | `{ENV}_WEB_DESIRED_COUNT` | `1` | Web タスクの起動数 |
 
 `{ENV}` は `DEV` / `STG` / `PROD`（例: `DEV_API_CPU`, `STG_DB_INSTANCE_TYPE`）。`STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID`が設定されている環境のみ意味を持つ。
-
-NetworkStackのAZ数（デフォルト2）は環境変数化されておらず、`NetworkStack` のコンストラクタ引数（現状 `bin/infra.ts` からは未指定でコンストラクト側デフォルトを使用）でのみ変更可能。

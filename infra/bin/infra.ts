@@ -36,6 +36,7 @@ const DEFAULT_WEB_COUNT = 1;
 const DEFAULT_DB_TYPE = 't3.micro';
 const DEFAULT_DB_STORAGE = 20;
 const DEFAULT_DB_MAX_STORAGE = 100;
+const DEFAULT_MAX_AZS = 2;
 
 // ─── 環境インフラ生成ファクトリ ──────────────────────────────────────────────
 
@@ -62,6 +63,7 @@ function createEnvInfra(app: cdk.App, envName: EnvName, env: cdk.Environment): E
 
   const networkStack = new NetworkStack(app, `${P}NetworkStack`, {
     env,
+    maxAzs: envInt(`${E}_MAX_AZS`, DEFAULT_MAX_AZS),
     enableVpcEndpoints: envName !== 'dev',
   });
   const databaseStack = new DatabaseStack(app, `${P}DatabaseStack`, {
