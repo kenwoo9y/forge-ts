@@ -1,5 +1,16 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 export type EnvName = 'dev' | 'stg' | 'prod';
 export type AppName = 'Api' | 'Web';
+
+/**
+ * The project name, read from the repo root's package.json so that renaming the
+ * project (see scripts/rename-project.sh) doesn't require editing this file.
+ */
+export const projectName: string = JSON.parse(
+  readFileSync(join(__dirname, '../../package.json'), 'utf-8')
+).name;
 
 function envSuffix(envName: EnvName): string {
   return envName.charAt(0).toUpperCase() + envName.slice(1);
@@ -35,7 +46,7 @@ export function migrateProjectName(appName: AppName, envName: EnvName): string {
 }
 
 export function ecrRepoName(appName: AppName, envName: EnvName): string {
-  return `forge-ts/${appName.toLowerCase()}-${envName}`;
+  return `${projectName}/${appName.toLowerCase()}-${envName}`;
 }
 
 export function ecrRepoArn(accountId: string, region: string, repositoryName: string): string {

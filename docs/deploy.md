@@ -142,6 +142,7 @@ Settings → Secrets and variables → Actions → Variables
 |---|---|---|
 | `AWS_REGION` | 全ワークフロー | 例: `ap-northeast-1` |
 | `POSTGRES_DB` | `infra-deploy.yaml` | RDS のデータベース名（`cdk synth`/`deploy` の実行に必須。未設定だとエラーで停止する） |
+| `PROJECT_NAME` | `app-deploy.yaml` | ECRリポジトリ名のプレフィックス（`infra/lib/pipeline-naming.ts` が生成する名前と一致させる。ルートの `package.json` の `name` と同じ値を設定する） |
 
 > `PIPELINE_ACCOUNT_ID` / `STG_ACCOUNT_ID` / `PROD_ACCOUNT_ID` はAWSアカウントIDのため、Variablesではなく上記「GitHub Secrets」に設定する。
 

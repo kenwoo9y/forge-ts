@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { describe, expect, it } from 'vitest';
+import { ecrRepoName } from '../lib/pipeline-naming';
 import { EcrStack } from '../lib/stacks/ecr-stack';
 
 describe('EcrStack', () => {
@@ -14,13 +15,13 @@ describe('EcrStack', () => {
 
   it('creates the DEV API repository with the correct name', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/api-dev',
+      RepositoryName: ecrRepoName('Api', 'dev'),
     });
   });
 
   it('creates the DEV Web repository with the correct name', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/web-dev',
+      RepositoryName: ecrRepoName('Web', 'dev'),
     });
   });
 
@@ -66,19 +67,19 @@ describe('EcrStack (stgAccountId specified)', () => {
 
   it('creates the STG API repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/api-stg',
+      RepositoryName: ecrRepoName('Api', 'stg'),
     });
   });
 
   it('creates the STG Web repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/web-stg',
+      RepositoryName: ecrRepoName('Web', 'stg'),
     });
   });
 
   it('grants the STG repository a resource policy allowing pull from the STG account', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/api-stg',
+      RepositoryName: ecrRepoName('Api', 'stg'),
       RepositoryPolicyText: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({
@@ -100,7 +101,7 @@ describe('EcrStack (stgAccountId specified)', () => {
 
   it('does not grant the DEV repository a cross-account resource policy', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/api-dev',
+      RepositoryName: ecrRepoName('Api', 'dev'),
       RepositoryPolicyText: Match.absent(),
     });
   });
@@ -115,7 +116,7 @@ describe('EcrStack (devAccountId specified, when using PIPELINE_ACCOUNT_ID)', ()
 
   it('grants the DEV repository a resource policy allowing pull from the Dev account', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/api-dev',
+      RepositoryName: ecrRepoName('Api', 'dev'),
       RepositoryPolicyText: Match.objectLike({
         Statement: Match.arrayWith([
           Match.objectLike({
@@ -149,13 +150,13 @@ describe('EcrStack (stgAccountId + prodAccountId specified)', () => {
 
   it('creates the PROD API repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/api-prod',
+      RepositoryName: ecrRepoName('Api', 'prod'),
     });
   });
 
   it('creates the PROD Web repository', () => {
     template.hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'forge-ts/web-prod',
+      RepositoryName: ecrRepoName('Web', 'prod'),
     });
   });
 });

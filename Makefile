@@ -1,6 +1,6 @@
 -include .devcontainer/.env
 
-.PHONY: help lint-check lint-fix format-check format-fix biome-format-check biome-format-fix yaml-format-check check check-fix biome-check biome-check-fix secrets-scan psql migrate-generate migrate aws-login cdk-bootstrap
+.PHONY: help lint-check lint-fix format-check format-fix biome-format-check biome-format-fix yaml-format-check check check-fix biome-check biome-check-fix secrets-scan psql migrate-generate migrate aws-login cdk-bootstrap rename
 .DEFAULT_GOAL := help
 
 lint-check: ## Run lint check
@@ -55,6 +55,10 @@ cdk-bootstrap: ## Bootstrap CDK for AWS account/region (requires aws-login first
 	@test -n "$(SSO_ACCOUNT_ID)" || (echo "Error: SSO_ACCOUNT_ID is not set. Please configure .devcontainer/.env"; exit 1)
 	@test -n "$(SSO_REGION)" || (echo "Error: SSO_REGION is not set. Please configure .devcontainer/.env"; exit 1)
 	cd infra && pnpm exec cdk bootstrap aws://$(SSO_ACCOUNT_ID)/$(SSO_REGION)
+
+rename: ## Rename the project (usage: make rename NAME=my-app; NAME must be kebab-case)
+	@test -n "$(NAME)" || (echo "Error: NAME is not set. Usage: make rename NAME=my-app"; exit 1)
+	git grep -lIE 'forge-ts' -- ':!pnpm-lock.yaml' | xargs perl -pi -e 's/forge-ts/$(NAME)/g'
 
 help: ## Show options
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(firstword $(MAKEFILE_LIST)) | \

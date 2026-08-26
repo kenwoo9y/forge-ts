@@ -7,6 +7,7 @@ import {
   ecrRepoArn,
   ecrRepoName,
   migrateProjectName,
+  projectName,
   taskDefFamily,
 } from '../lib/pipeline-naming';
 
@@ -40,14 +41,15 @@ describe('pipeline-naming', () => {
     expect(migrateProjectName('Web', 'prod')).toBe('WebMigrateProd');
   });
 
-  it('ecrRepoName returns forge-ts/appName-env form (lowercase)', () => {
-    expect(ecrRepoName('Api', 'dev')).toBe('forge-ts/api-dev');
-    expect(ecrRepoName('Web', 'prod')).toBe('forge-ts/web-prod');
+  it('ecrRepoName returns projectName/appName-env form (lowercase)', () => {
+    expect(ecrRepoName('Api', 'dev')).toBe(`${projectName}/api-dev`);
+    expect(ecrRepoName('Web', 'prod')).toBe(`${projectName}/web-prod`);
   });
 
   it('ecrRepoArn builds the ECR repository ARN', () => {
-    expect(ecrRepoArn('123456789012', 'ap-northeast-1', 'forge-ts/api-dev')).toBe(
-      'arn:aws:ecr:ap-northeast-1:123456789012:repository/forge-ts/api-dev'
+    const repoName = ecrRepoName('Api', 'dev');
+    expect(ecrRepoArn('123456789012', 'ap-northeast-1', repoName)).toBe(
+      `arn:aws:ecr:ap-northeast-1:123456789012:repository/${repoName}`
     );
   });
 });

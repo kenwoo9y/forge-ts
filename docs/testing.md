@@ -44,12 +44,12 @@ HTTPエンドポイントから実DBまでを一気通貫で検証する層（"b
   - Prismaにはトランザクションロールバックでテストを分離する標準機構がなく、Repository実装が呼び出しごとに別コネクションを使いうるため、テスト側だけ外側のトランザクションでラップしても本番コードの実装を変えない限り機能しない。そのためTRUNCATE方式を採用している
   - 複数テストファイルが同一DBを共有するため、`fileParallelism: false` でファイル並列実行を無効化している（並列のままだと複数ファイルのTRUNCATEが競合し、外部キー制約違反・一意制約違反が発生する）
 - コマンド: `pnpm --filter api run test:integration`
-- ローカル実行: 開発用DB（`forge_ts_dev`）を直接使うとTRUNCATEで開発データが消えるため、専用のテストDBを用意し、`apps/api/.env.integration`（`.env.integration.example` をコピー、gitignore対象）に接続情報を書く。`vitest.integration.config.ts` が起動時に自動で読み込むため、以降は毎回環境変数を指定しなくても `pnpm --filter api run test:integration` だけで実行できる（`apps/web/playwright.config.ts` が `.env.local` を読む方式と同じパターン）
+- ローカル実行: 開発用DB（`.devcontainer/.env` の `POSTGRES_DB` で設定した値）を直接使うとTRUNCATEで開発データが消えるため、専用のテストDBを用意し、`apps/api/.env.integration`（`.env.integration.example` をコピー、gitignore対象）に接続情報を書く。`vitest.integration.config.ts` が起動時に自動で読み込むため、以降は毎回環境変数を指定しなくても `pnpm --filter api run test:integration` だけで実行できる（`apps/web/playwright.config.ts` が `.env.local` を読む方式と同じパターン）
 
   ```bash
-  # テスト用DBを作成し、マイグレーションを適用
-  psql "postgresql://postgres:postgres@postgres:5432/postgres" -c "CREATE DATABASE forge_ts_test"
-  DATABASE_URL="postgresql://postgres:postgres@postgres:5432/forge_ts_test" pnpm --filter db exec prisma migrate deploy
+  # テスト用DBを作成し、マイグレーションを適用（DB名は任意。ここでは例として test_db とする）
+  psql "postgresql://postgres:postgres@postgres:5432/postgres" -c "CREATE DATABASE test_db"
+  DATABASE_URL="postgresql://postgres:postgres@postgres:5432/test_db" pnpm --filter db exec prisma migrate deploy
 
   # 接続情報を .env.integration に設定
   cp apps/api/.env.integration.example apps/api/.env.integration

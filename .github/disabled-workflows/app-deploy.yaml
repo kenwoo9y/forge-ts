@@ -43,10 +43,10 @@ jobs:
       matrix:
         include:
           - app: api
-            ecr_repository: forge-ts/api-dev
+            ecr_repository_suffix: api-dev
             dockerfile: apps/api/Dockerfile
           - app: web
-            ecr_repository: forge-ts/web-dev
+            ecr_repository_suffix: web-dev
             dockerfile: apps/web/Dockerfile
     steps:
       - uses: actions/checkout@v6
@@ -80,7 +80,7 @@ jobs:
       - name: Build and push Docker image (SHA tag only)
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ matrix.ecr_repository }}
+          REPOSITORY: ${{ vars.PROJECT_NAME }}/${{ matrix.ecr_repository_suffix }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build --platform linux/arm64 \
@@ -90,7 +90,7 @@ jobs:
 
       - name: Check ECR image scan results
         env:
-          REPOSITORY: ${{ matrix.ecr_repository }}
+          REPOSITORY: ${{ vars.PROJECT_NAME }}/${{ matrix.ecr_repository_suffix }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           # ECR registers the scan asynchronously after the push, so describing it right away can
@@ -132,7 +132,7 @@ jobs:
       - name: Tag as latest and push (triggers CodePipeline)
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ matrix.ecr_repository }}
+          REPOSITORY: ${{ vars.PROJECT_NAME }}/${{ matrix.ecr_repository_suffix }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker tag "$REGISTRY/$REPOSITORY:$IMAGE_TAG" "$REGISTRY/$REPOSITORY:latest"

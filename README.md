@@ -16,6 +16,18 @@ TypeScript モノレポのテンプレート実装例。Hono API・Next.js Web�
 - [CI](docs/ci.md)
 - [デプロイ](docs/deploy.md)
 
+## このテンプレートを使い始める
+
+別名でクローンした場合は、プロジェクト名由来の文言（`forge-ts`）を一括置換できます。
+
+```bash
+make rename NAME=my-app
+```
+
+`NAME` は小文字英数字とハイフンのみの kebab-case で指定してください（例: `my-app`）。大文字・スペース・アンダースコアなどを含む値を渡すと、`package.json` の `name` フィールド等に不正な値がそのまま書き込まれるため、必ず kebab-case で指定してください。
+
+`git diff` で変更内容を確認してからコミットしてください。
+
 ## 起動
 
 ```bash

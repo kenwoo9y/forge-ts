@@ -1,5 +1,5 @@
 {
-  "name": "Forge TS",
+  "name": "forge-ts",
   "dockerComposeFile": ["compose.yaml", "compose.override.yaml"],
   "service": "app",
   "workspaceFolder": "/workspace",

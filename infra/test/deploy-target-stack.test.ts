@@ -3,6 +3,7 @@ import { Match, Template } from 'aws-cdk-lib/assertions';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { describe, it } from 'vitest';
+import { ecrRepoName } from '../lib/pipeline-naming';
 import { ApiStack } from '../lib/stacks/api-stack';
 import { DatabaseStack } from '../lib/stacks/database-stack';
 import { DeployTargetStack } from '../lib/stacks/deploy-target-stack';
@@ -62,8 +63,8 @@ function buildDeployTargetStack() {
       dbName: 'test_db',
     },
     ecrRepoArns: {
-      api: `arn:aws:ecr:ap-northeast-1:${DEV_ACCOUNT_ID}:repository/forge-ts/api-stg`,
-      web: `arn:aws:ecr:ap-northeast-1:${DEV_ACCOUNT_ID}:repository/forge-ts/web-stg`,
+      api: `arn:aws:ecr:ap-northeast-1:${DEV_ACCOUNT_ID}:repository/${ecrRepoName('Api', 'stg')}`,
+      web: `arn:aws:ecr:ap-northeast-1:${DEV_ACCOUNT_ID}:repository/${ecrRepoName('Web', 'stg')}`,
     },
   });
 
@@ -102,7 +103,7 @@ describe('DeployTargetStack', () => {
         Statement: Match.arrayWith([
           Match.objectLike({
             Action: Match.arrayWith(['ecr:BatchGetImage']),
-            Resource: `arn:aws:ecr:ap-northeast-1:${DEV_ACCOUNT_ID}:repository/forge-ts/api-stg`,
+            Resource: `arn:aws:ecr:ap-northeast-1:${DEV_ACCOUNT_ID}:repository/${ecrRepoName('Api', 'stg')}`,
           }),
         ]),
       },
@@ -217,8 +218,8 @@ describe('DeployTargetStack (envName: dev)', () => {
         dbName: 'test_db',
       },
       ecrRepoArns: {
-        api: `arn:aws:ecr:ap-northeast-1:${PIPELINE_ACCOUNT_ID}:repository/forge-ts/api-dev`,
-        web: `arn:aws:ecr:ap-northeast-1:${PIPELINE_ACCOUNT_ID}:repository/forge-ts/web-dev`,
+        api: `arn:aws:ecr:ap-northeast-1:${PIPELINE_ACCOUNT_ID}:repository/${ecrRepoName('Api', 'dev')}`,
+        web: `arn:aws:ecr:ap-northeast-1:${PIPELINE_ACCOUNT_ID}:repository/${ecrRepoName('Web', 'dev')}`,
       },
     });
 
