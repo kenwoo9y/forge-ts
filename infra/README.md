@@ -1,30 +1,30 @@
 # infra
 
-AWS CDK（TypeScript）によるインフラ定義。VPC・RDS・ECS Fargate を複数スタックで管理する。スタック構成・使用しているAWSサービスの詳細は [インフラアーキテクチャ](../docs/infra-architecture.md) を参照。
+Infrastructure defined with AWS CDK (TypeScript). Manages the VPC, RDS, and ECS Fargate across multiple stacks. See [Infrastructure Architecture](../docs/infra-architecture.md) for details on the stack composition and the AWS services used.
 
-## 事前準備
+## Prerequisites
 
-AWS SSO でログインする（`.devcontainer/.env` に SSO 設定が必要）。
+Log in via AWS SSO (requires SSO settings in `.devcontainer/.env`).
 
 ```bash
 make aws-login
 ```
 
-CDK を初めて使う環境ではブートストラップが必要。
+An environment using CDK for the first time needs to be bootstrapped.
 
 ```bash
 make cdk-bootstrap
 ```
 
-## デプロイコマンド
+## Deploy commands
 
-DEV・STG・PROD は別々のAWSアカウントにデプロイする。CI/CDパイプライン（`PipelineStack`）とECRは「Pipelineアカウント」に同居し、デフォルトはDEVアカウントと同居する（`PIPELINE_ACCOUNT_ID`で別アカウントに切り出し可能）。`cdk` は常にPipelineアカウントの認証情報で実行し、STG・PROD（・Pipelineを切り出した場合のDEV）はアカウントIDを環境変数で指定した場合のみ対象になる。
+DEV, STG, and PROD are deployed to separate AWS accounts. The CI/CD pipeline (`PipelineStack`) and ECR live together in the "Pipeline account," which is co-located with the DEV account by default (it can be split out into a separate account via `PIPELINE_ACCOUNT_ID`). `cdk` always runs with the Pipeline account's credentials, and STG/PROD (and DEV, if the Pipeline is split out) are only targeted when their account ID is set via an environment variable.
 
-| コマンド | 内容 |
+| Command | Description |
 |---|---|
-| `pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | 全スタックをデプロイ（初回・DEV のみ、PipelineはDEVと同居） |
-| `STG_ACCOUNT_ID=<accountId> pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | STG を追加してデプロイ（事前にSTGアカウントでの`cdk bootstrap --trust`が必要） |
-| `STG_ACCOUNT_ID=<accountId> PROD_ACCOUNT_ID=<accountId> pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | PROD を追加してデプロイ（事前にPRODアカウントでの`cdk bootstrap --trust`が必要） |
-| `PIPELINE_ACCOUNT_ID=<accountId> pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | Pipeline・ECRをDEVとは別アカウント（Tooling等）に切り出してデプロイ（事前にそのアカウントでの`cdk bootstrap --trust`が必要） |
-| `pnpm cdk deploy DevNetworkStack` | 指定スタックのみデプロイ |
-| `pnpm cdk destroy` | 全スタックを削除 |
+| `pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | Deploy all stacks (first run, DEV only; Pipeline co-located with DEV) |
+| `STG_ACCOUNT_ID=<accountId> pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | Add and deploy STG (requires running `cdk bootstrap --trust` in the STG account beforehand) |
+| `STG_ACCOUNT_ID=<accountId> PROD_ACCOUNT_ID=<accountId> pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | Add and deploy PROD (requires running `cdk bootstrap --trust` in the PROD account beforehand) |
+| `PIPELINE_ACCOUNT_ID=<accountId> pnpm exec cdk deploy --all -c githubOrg=<org> -c githubRepo=<repo>` | Split the Pipeline/ECR out into an account separate from DEV (e.g. Tooling) and deploy (requires running `cdk bootstrap --trust` in that account beforehand) |
+| `pnpm cdk deploy DevNetworkStack` | Deploy only the specified stack |
+| `pnpm cdk destroy` | Delete all stacks |

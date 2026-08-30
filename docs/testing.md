@@ -1,78 +1,78 @@
-# テスト方針
+# Testing Strategy
 
-## 全体像
+## Overview
 
 | | Unit | Integration | E2E |
 |---|---|---|---|
-| ツール | Vitest | Vitest | Playwright |
-| 対象 | 各app・packageのソースコード | `apps/api` のHTTPエンドポイント〜実DB | `apps/web` を起点としたユーザーシナリオ |
-| 依存 | 外部I/O境界のみモック（一部、実DBが不要なInfrastructure実装は例外） | 実DB（Postgres） | 実DB + 実API + 実ブラウザ |
-| 実行速度 | 速い | 中程度 | 遅い |
-| CI | `ci-api` / `ci-web` / `ci-mobile` / `ci-infra` の `unit-test` ジョブ | `ci-api` の `integration-test` ジョブ | `e2e` ワークフロー |
+| Tool | Vitest | Vitest | Playwright |
+| Target | Source code of each app/package | HTTP endpoints of `apps/api` through the real DB | User scenarios starting from `apps/web` |
+| Dependencies | Only external I/O boundaries are mocked (with some exceptions for infrastructure implementations that don't need a real DB) | Real DB (Postgres) | Real DB + real API + real browser |
+| Run speed | Fast | Moderate | Slow |
+| CI | The `unit-test` job in `ci-api` / `ci-web` / `ci-mobile` / `ci-infra` | The `integration-test` job in `ci-api` | The `e2e` workflow |
 
-下位のテストほど実行コストが低く原因の特定もしやすいので、まず Unit で表現できないかを検討し、それでもカバーできない範囲を Integration・E2E に任せる。
+Lower-level tests are cheaper to run and easier to pinpoint failures with, so first consider whether something can be expressed as a Unit test, and leave whatever can't be covered that way to Integration/E2E.
 
 ## Unit Test
 
-外部I/O境界（Repository/QueryServiceなどのインターフェース）のみモックし、それ以外のレイヤーは実オブジェクトのまま結合してテストする（classicist / sociable unit test）。
+Only external I/O boundaries (interfaces like Repository/QueryService) are mocked; every other layer is tested wired together as real objects (classicist / sociable unit test).
 
-`apps/api` の `presentation/http/user/handler.test.ts` が典型例で、`OpenAPIHono` に実際のルートを載せ、UseCase・Domain Entityも実結合したうえで、`IUserRepository` / `IUserQueryService` だけをモックしている。`app.request()` で実際のHTTPリクエストを投げてレスポンスを検証するため、ルーティング・バリデーション・ユースケース・ドメインロジックが一体として検証される。ただしこのテストファイルは独自に組み立てた簡易appを使っており、`apps/api/src/app.ts`（実際のDIコンポジションルート）そのものは通っていない点に注意（この部分はIntegration Testの対象）。
+`apps/api`'s `presentation/http/user/handler.test.ts` is the canonical example: it loads the real routes onto `OpenAPIHono`, wires the UseCase and Domain Entity together for real, and mocks only `IUserRepository` / `IUserQueryService`. Because it sends actual HTTP requests via `app.request()` and asserts on the response, routing, validation, use-case logic, and domain logic are all verified together as a unit. Note, however, that this test file assembles its own minimal app, so it does not exercise `apps/api/src/app.ts` (the real DI composition root) itself — that's covered by the Integration tests.
 
-`apps/web` では外部I/O境界は「バックエンドAPI呼び出し」（`lib/hono-client.ts` の `apiClient`）にあたる。`features/*/actions.test.ts` は `apiClient` と `auth()`（Auth.jsのセッション取得。ブラウザのCookieが前提で現実的に本物にできない境界）をモックし、Server Actions自身のロジック（パラメータの組み立て・エラーの伝播）を検証する。一方 `unwrap()`（`apiClient` のレスポンスをエラーメッセージにマッピングする実装）は標準の `Response` オブジェクトをそのまま使い、モックなしで検証する（`lib/hono-client.test.ts`）。
+In `apps/web`, the external I/O boundary is the "backend API call" (the `apiClient` in `lib/hono-client.ts`). `features/*/actions.test.ts` mocks `apiClient` and `auth()` (Auth.js's session retrieval — a boundary that depends on browser cookies and realistically can't be made real) and verifies the Server Actions' own logic (building parameters, propagating errors). `unwrap()` (the implementation that maps `apiClient` responses to error messages), on the other hand, is tested against a plain standard `Response` object with no mocking (`lib/hono-client.test.ts`).
 
-「振る舞いをテストする」という原則から、以下の2点は避ける。
+Following the principle of "test behavior," the following two things are avoided.
 
-- **実際には到達できないコードパスをテストしない**: 内部実装（値オブジェクトのメソッド等）を直接呼び出せば任意の分岐を再現できてしまうが、Zodスキーマ等の上位レイヤーで既にガードされていて実際には到達しない分岐をテストしても、システムの振る舞いは何も検証できていない。例えば `domain/user/value/username.ts` の文字数バリデーションはHTTP経由では到達しないため、`Username.create()` を直接呼ぶテストは書かず、`/* c8 ignore start */`/`stop` でカバレッジ要求から除外している（実際に到達可能な振る舞いとしては `POST /users` に31文字のユーザー名を送ると400になることを `user/handler.test.ts` で検証している）
-- **モックしたContextに対する呼び出し検証（interaction-based verification）をしない**: `expect(next).toHaveBeenCalled()` のような検証はロンドン学派の手法であり、実際のHTTPリクエスト・レスポンスという状態（state）を検証するデトロイト学派とは異なる。`infrastructure/auth/jwtMiddleware.ts` はこの理由でUnit Test対象外とし、実 `app` に対する本物のHTTPリクエストで検証できるIntegration Testに任せる方針（現時点ではJWT保護ルートを持つドメインサンプルがないため、実際に検証しているIntegration Testはまだ存在しない。保護ルートを追加した際は同様に `app.request()` ベースのIntegration Testでカバーすること）
+- **Don't test code paths that are actually unreachable**: calling internal implementation directly (e.g. a value object's method) can reproduce any branch you like, but testing a branch that's already guarded by an upper layer (like a Zod schema) and thus never actually reached in practice verifies nothing about the system's behavior. For example, the character-length validation in `domain/user/value/username.ts` is unreachable via HTTP, so no test calls `Username.create()` directly — it's excluded from coverage requirements with `/* c8 ignore start */`/`stop` instead (the actually-reachable behavior — that sending a 31-character username to `POST /users` returns a 400 — is verified in `user/handler.test.ts`).
+- **Don't do interaction-based verification against a mocked Context**: assertions like `expect(next).toHaveBeenCalled()` are a London-school technique, distinct from the Detroit-school approach of verifying state — i.e. the actual HTTP request/response. `infrastructure/auth/jwtMiddleware.ts` is excluded from Unit Test coverage for this reason and left to Integration Test, which can verify it via a real HTTP request against the real `app` (at present there's no domain sample with a JWT-protected route, so no Integration Test actually exercises this yet — when a protected route is added, cover it the same way with an `app.request()`-based Integration Test).
 
-- 対象: `domain` / `application` / `presentation` 層
-- `infrastructure` 層のうち、実DB等の外部依存を必要とせず、かつ実際に常に到達する実装（JWTの署名・検証ロジックである `infrastructure/auth/jwt.ts` など）もUnit Testの対象
-- 対象外: `infrastructure/prisma/**`（実DBが必要なためIntegration Testの対象）、`infrastructure/logger/**`（分岐のないpino設定ラッパー）、`infrastructure/auth/jwtMiddleware.ts`（実Honoコンテキストがないと振る舞いとして検証できないためIntegration Testの対象）、`app.ts`（実DBに対するIntegration Testが実際の配線ごと検証する。`apps/api/vitest.config.ts` の `coverage.exclude` を参照）
-- コマンド: `pnpm --filter <app> run test` / `test:coverage`
+- Target: the `domain` / `application` / `presentation` layers
+- Within the `infrastructure` layer, implementations that need no external dependency such as a real DB and are actually always reached (e.g. `infrastructure/auth/jwt.ts`, the JWT signing/verification logic) are also Unit Test targets
+- Out of scope: `infrastructure/prisma/**` (needs a real DB, so it's an Integration Test target), `infrastructure/logger/**` (a branchless pino config wrapper), `infrastructure/auth/jwtMiddleware.ts` (can't be verified as behavior without a real Hono context, so it's an Integration Test target), `app.ts` (the Integration Test against the real DB verifies this together with the actual wiring — see `coverage.exclude` in `apps/api/vitest.config.ts`)
+- Command: `pnpm --filter <app> run test` / `test:coverage`
 
 ## Integration Test
 
-HTTPエンドポイントから実DBまでを一気通貫で検証する層（"broad" integration test）。`apps/api/src/app.ts` が組み立てる実 `app` をそのまま使い、`app.request()` で実際にHTTPリクエストを投げる。Unitテストが各テストファイルで独自に組み立てた簡易appを使っていたのに対し、Integrationテストは本番と同じDIコンポジションルート（ルーティング・`jwtAuth` ミドルウェア・UseCase・実Repository）をまるごと検証する。
+The layer that verifies the path from an HTTP endpoint all the way through to the real DB in one go (a "broad" integration test). It uses the real `app` assembled by `apps/api/src/app.ts` as-is and sends actual HTTP requests via `app.request()`. Whereas the Unit tests use a minimal app assembled independently in each test file, the Integration tests exercise the entire production DI composition root (routing, the `jwtAuth` middleware, UseCases, and real Repositories) as a whole.
 
-- 対象: `apps/api` の主要エンドポイント（サインアップ・サインイン・ユーザー参照）。ドメインを追加してJWT保護ルートを実装した場合は、その認可も含めてIntegration Testでカバーする
-  - `apps/web` は対象外。`apiClient` は `apps/api` の実ルート型 `AppType` を使った型安全なクライアント（`hc<AppType>()`）であり、リクエスト/レスポンスの形が変わればコンパイル時に検出できる。Prismaの実装（型だけでは実行時のSQL制約違反まで保証されない）と違って「実物を叩かないと分からないリスク」がそもそも小さいため、Unit Test（`apiClient` をモックしてServer Actions自身のロジックを検証）＋`apps/api` 側のIntegration Test（APIの実際の挙動を保証）＋Playwright E2E（実際のユーザーシナリオ）の組み合わせで十分と判断している
-- 配置: `apps/api/integration/` にリソース単位で配置（`auth.integration.test.ts` / `user.integration.test.ts`）。`apps/web/e2e/` が Unit Test（コロケーション）とは別の専用ディレクトリになっているのと同じ考え方で、性質の異なるテストをプロダクションコードのディレクトリから分離している
-- 命名規則: `*.integration.test.ts`
-- 設定: `apps/api/vitest.integration.config.ts`（`integration/**/*.integration.test.ts` のみを対象。Unit Test側の `vitest.config.ts` は `integration/**` を `exclude` して二重に拾わないようにしている）、セットアップは `apps/api/integration/setup.ts`
-- 認証: `integration/testAuth.ts` の `signUpAndSignIn()` が `POST /users` → `POST /auth/signin` を実際に呼んでJWTを取得する。モックせず本物のサインアップ/サインインフローを経由することで、JWTの発行・検証・ミドルウェアまで一体で検証している
-- データ分離: 各テスト後に対象テーブルを `TRUNCATE ... RESTART IDENTITY CASCADE` でリセットする（`integration/testClient.ts` の `resetDatabase()`）。DB直接アクセスはリセットと、レスポンスに現れない内部ID（`ownerId` など）の取得やDB側の副作用確認といった補助目的にのみ使う
-  - Prismaにはトランザクションロールバックでテストを分離する標準機構がなく、Repository実装が呼び出しごとに別コネクションを使いうるため、テスト側だけ外側のトランザクションでラップしても本番コードの実装を変えない限り機能しない。そのためTRUNCATE方式を採用している
-  - 複数テストファイルが同一DBを共有するため、`fileParallelism: false` でファイル並列実行を無効化している（並列のままだと複数ファイルのTRUNCATEが競合し、外部キー制約違反・一意制約違反が発生する）
-- コマンド: `pnpm --filter api run test:integration`
-- ローカル実行: 開発用DB（`.devcontainer/.env` の `POSTGRES_DB` で設定した値）を直接使うとTRUNCATEで開発データが消えるため、専用のテストDBを用意し、`apps/api/.env.integration`（`.env.integration.example` をコピー、gitignore対象）に接続情報を書く。`vitest.integration.config.ts` が起動時に自動で読み込むため、以降は毎回環境変数を指定しなくても `pnpm --filter api run test:integration` だけで実行できる（`apps/web/playwright.config.ts` が `.env.local` を読む方式と同じパターン）
+- Target: the main endpoints of `apps/api` (sign-up, sign-in, user lookup). If a domain is added with a JWT-protected route implemented, its authorization is covered by Integration Tests too
+  - `apps/web` is out of scope. `apiClient` is a type-safe client (`hc<AppType>()`) built on `apps/api`'s real route type `AppType`, so any change to the request/response shape is caught at compile time. Unlike the Prisma implementation (where types alone don't guarantee runtime SQL constraint violations), the "risk that's only knowable by hitting the real thing" is inherently small here, so the combination of a Unit Test (mocking `apiClient` to verify the Server Actions' own logic) + an Integration Test on the `apps/api` side (guaranteeing the API's actual behavior) + Playwright E2E (real user scenarios) is judged sufficient
+- Location: placed per-resource under `apps/api/integration/` (`auth.integration.test.ts` / `user.integration.test.ts`). Following the same idea as `apps/web/e2e/` being a dedicated directory separate from the (colocated) Unit Tests, tests with different characteristics are kept out of the production code directories
+- Naming convention: `*.integration.test.ts`
+- Configuration: `apps/api/vitest.integration.config.ts` (targets only `integration/**/*.integration.test.ts`; the Unit Test side's `vitest.config.ts` excludes `integration/**` so it isn't picked up twice), setup in `apps/api/integration/setup.ts`
+- Auth: `signUpAndSignIn()` in `integration/testAuth.ts` actually calls `POST /users` → `POST /auth/signin` to obtain a JWT. Going through the real sign-up/sign-in flow without mocking verifies JWT issuance, verification, and the middleware all together
+- Data isolation: after each test, the target tables are reset with `TRUNCATE ... RESTART IDENTITY CASCADE` (`resetDatabase()` in `integration/testClient.ts`). Direct DB access is used only for auxiliary purposes such as this reset and fetching internal IDs that don't appear in the response (e.g. `ownerId`) or confirming DB-side side effects
+  - Prisma has no standard mechanism for isolating tests via transaction rollback, and a Repository implementation may use a different connection per call, so wrapping only the test side in an outer transaction wouldn't work without changing the production code's implementation. The TRUNCATE approach is used for this reason
+  - Since multiple test files share the same DB, file-level parallelism is disabled with `fileParallelism: false` (running in parallel would cause TRUNCATEs from multiple files to race, producing foreign-key and unique-constraint violations)
+- Command: `pnpm --filter api run test:integration`
+- Running locally: using the dev DB directly (the value set for `POSTGRES_DB` in `.devcontainer/.env`) would wipe dev data via TRUNCATE, so set up a dedicated test DB and write its connection info to `apps/api/.env.integration` (copy `.env.integration.example`; it's gitignored). `vitest.integration.config.ts` loads it automatically at startup, so afterward you can just run `pnpm --filter api run test:integration` without specifying environment variables each time (the same pattern `apps/web/playwright.config.ts` uses by reading `.env.local`)
 
   ```bash
-  # テスト用DBを作成し、マイグレーションを適用（DB名は任意。ここでは例として test_db とする）
+  # Create the test DB and apply migrations (any DB name works; test_db is used here as an example)
   psql "postgresql://postgres:postgres@postgres:5432/postgres" -c "CREATE DATABASE test_db"
   DATABASE_URL="postgresql://postgres:postgres@postgres:5432/test_db" pnpm --filter db exec prisma migrate deploy
 
-  # 接続情報を .env.integration に設定
+  # Set the connection info in .env.integration
   cp apps/api/.env.integration.example apps/api/.env.integration
 
-  # Integrationテストを実行
+  # Run the integration tests
   pnpm --filter api run test:integration
   ```
 
-- CI: `.github/workflows/ci-api.yaml` の `integration-test` ジョブ。`e2e.yaml` と同じ `postgres:16` サービスコンテナ構成を流用し、`unit-test` とは別ジョブとして並列に実行する
+- CI: the `integration-test` job in `.github/workflows/ci-api.yaml`. Reuses the same `postgres:16` service container setup as `e2e.yaml`, and runs in parallel as a job separate from `unit-test`
 
 ## E2E Test
 
-Playwrightで `apps/web/e2e/**` に実装。ブラウザ→Next.js→Hono API→実Postgresの全経路を、実際のユーザー操作に近い形で検証する。
+Implemented with Playwright under `apps/web/e2e/**`. Verifies the whole path — browser → Next.js → Hono API → real Postgres — in a way that closely resembles actual user actions.
 
-- 実行コストが高いため、主要な正常系シナリオ（サインアップ・ログインなど）に絞る。分岐網羅はUnit/Integrationの責務とする
-- CI: `.github/workflows/e2e.yaml`。`postgres:16` サービスコンテナ・実APIサーバー・実Webサーバーを起動してPlaywrightを実行する
+- Because the run cost is high, coverage is limited to the main happy-path scenarios (sign-up, login, etc.). Branch coverage is the responsibility of Unit/Integration
+- CI: `.github/workflows/e2e.yaml`. Runs Playwright with a `postgres:16` service container, a real API server, and a real Web server
 
-## どのテストで検証するか
+## Which test verifies what
 
-| 検証したいこと | テスト |
+| What you want to verify | Test |
 |---|---|
-| ドメインロジック・ユースケースの分岐、APIハンドラのレスポンス | Unit |
-| JWTの署名・検証など、実DB不要なInfrastructure実装のロジック | Unit |
-| Server Actionsのパラメータ組み立て・エラー伝播、APIレスポンスのエラーメッセージ変換 | Unit |
-| エンドポイント〜実DBの一気通貫の挙動、DI配線、JWT認可ミドルウェア | Integration |
-| 画面遷移・フォーム送信など、ユーザーが実際に触る操作フロー | E2E |
+| Branches in domain logic/use cases, API handler responses | Unit |
+| Logic in infrastructure implementations that don't need a real DB, such as JWT signing/verification | Unit |
+| Server Actions' parameter building/error propagation, mapping of API response errors to messages | Unit |
+| End-to-end behavior from endpoint through the real DB, DI wiring, JWT authorization middleware | Integration |
+| User-facing operation flows such as screen transitions and form submission | E2E |

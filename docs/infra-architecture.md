@@ -1,17 +1,17 @@
-# インフラアーキテクチャ
+# Infrastructure Architecture
 
-AWS CDK (TypeScript) で定義。DEV・STG・PROD はそれぞれ**別々の AWS アカウント**にデプロイする。DEV は常に作成され、STG・PROD は `STG_ACCOUNT_ID` / `PROD_ACCOUNT_ID` 環境変数が設定されている場合のみ作成される。
+Defined with AWS CDK (TypeScript). DEV, STG, and PROD are each deployed to **separate AWS accounts**. DEV is always created; STG and PROD are only created if the `STG_ACCOUNT_ID` / `PROD_ACCOUNT_ID` environment variables are set.
 
-## アカウント構成
+## Account layout
 
-- CI/CD パイプライン（`PipelineStack`）とECRは、同じ「**Pipelineアカウント**」に同居する。デフォルト（`PIPELINE_ACCOUNT_ID`未指定）では**DEVアカウントと同居**し、追加設定は不要。`PIPELINE_ACCOUNT_ID`にDEVとは異なるアカウントIDを指定すると、専用のTooling/CI-CDアカウントとして切り出せる（AWSの標準的なマルチアカウント構成に合わせやすくなる一方、切り出す場合はアカウントが1つ増える）
-- `cdk synth`/`cdk deploy` は常に Pipeline アカウントの認証情報で実行する。Pipeline アカウントのIDは、`PIPELINE_ACCOUNT_ID`が未指定なら`CDK_DEFAULT_ACCOUNT`（CDK CLIが認証情報から自動セット、＝DEVアカウント）にフォールバックする
-- STG・PROD、および（`PIPELINE_ACCOUNT_ID`でPipelineをDEVと別アカウントにした場合の）DEV へは、Pipeline アカウントからの**クロスアカウントデプロイ**になる。それらのデプロイ実行リソース（CodeDeployのDeploymentGroup・Prismaマイグレーション用CodeBuild）は `DeployTargetStack` として各アカウントに作成し、Pipeline アカウントの `PipelineStack` が公開されたIAMロールを引き受けて操作する
-- ECR は **Pipeline アカウントに集約**する（DEV/STG/PRODすべてのリポジトリを含む）。Pipeline以外のアカウントからのpullは、リポジトリのリソースポリシー（`AccountPrincipal`）で許可する
-- CloudFormation はスタックをまたいだクロスアカウント参照ができないため、Pipelineアカウントとは異なるアカウントのリソース参照はすべて `lib/pipeline-naming.ts` の命名規則からアカウントID・リソース名を逆算し、`fromXxxAttributes` 系メソッドでインポートする方式を取っている
-- 実際にPipelineアカウントとは異なるアカウントへデプロイするには、事前に該当アカウントで `cdk bootstrap aws://<ACCOUNT_ID>/<REGION> --trust <Pipelineアカウントのアカウント自体のID>` を実行し、Pipelineアカウントからの信頼を設定しておく必要がある（詳細は [deploy.md](./deploy.md)）
+- The CI/CD pipeline (`PipelineStack`) and ECR live together in the same "**Pipeline account**." By default (`PIPELINE_ACCOUNT_ID` unset), this **coincides with the DEV account** and needs no extra setup. Setting `PIPELINE_ACCOUNT_ID` to an account ID different from DEV splits it out into a dedicated Tooling/CI-CD account (this aligns more closely with AWS's standard multi-account layout, at the cost of one extra account).
+- `cdk synth`/`cdk deploy` always run with the Pipeline account's credentials. If `PIPELINE_ACCOUNT_ID` is unset, the Pipeline account ID falls back to `CDK_DEFAULT_ACCOUNT` (auto-set by the CDK CLI from the credentials — i.e. the DEV account).
+- Deploys to STG/PROD, and to DEV when `PIPELINE_ACCOUNT_ID` splits the Pipeline into a different account from DEV, are **cross-account deploys** from the Pipeline account. The resources needed to execute those deploys (the CodeDeploy DeploymentGroup, the CodeBuild project for Prisma migrations) are created in each account as a `DeployTargetStack`, and the Pipeline account's `PipelineStack` operates by assuming the IAM role it exposes.
+- ECR is **consolidated in the Pipeline account** (holding the repositories for DEV/STG/PROD all together). Pulls from accounts other than the Pipeline account are allowed via the repository's resource policy (`AccountPrincipal`).
+- Since CloudFormation can't do cross-account references across stacks, any reference to a resource in an account other than the Pipeline account is done by reverse-deriving the account ID and resource name from the naming convention in `lib/pipeline-naming.ts` and importing it with an `fromXxxAttributes`-style method.
+- To actually deploy to an account different from the Pipeline account, you first need to run `cdk bootstrap aws://<ACCOUNT_ID>/<REGION> --trust <Pipeline account's own ID>` in that account to set up trust from the Pipeline account (see [deploy.md](./deploy.md) for details).
 
-## システム概要
+## System overview
 
 ```mermaid
 graph TB
@@ -35,10 +35,10 @@ graph TB
         ALB_WEB["ALB (internet-facing)<br/>Web Traffic Distribution"]
         ECS_API["ECS Fargate<br/>Hono API :3000"]
         ECS_WEB["ECS Fargate<br/>Next.js Web :3001"]
-        RDS["RDS PostgreSQL 16<br/>POSTGRES_DBで指定 :5432"]
+        RDS["RDS PostgreSQL 16<br/>Set via POSTGRES_DB :5432"]
         ECR["Amazon ECR<br/>Container Registry"]
         SM["Secrets Manager<br/>DB credentials / JWT secret / Auth.js secret"]
-        CODEPIPELINE["CodePipeline<br/>App Pipeline（Dev→Stg→Prod昇格 + DBマイグレーション）"]
+        CODEPIPELINE["CodePipeline<br/>App Pipeline (Dev→Stg→Prod promotion + DB migration)"]
     end
 
     subgraph "CI/CD Pipeline"
@@ -96,7 +96,7 @@ graph TB
 
 ---
 
-## スタック依存関係
+## Stack dependencies
 
 ```mermaid
 graph LR
@@ -112,37 +112,37 @@ graph LR
     WS --> PS
 ```
 
-`PipelineStack`（Pipelineアカウント）は、Pipelineと同一アカウントの環境（デフォルトではDEVのみ）についてはBlue/GreenデプロイのためのTargetGroup/Listener（ApiStack・WebStack由来）や、Prismaマイグレーション用CodeBuildを配置するための`NetworkStack`（vpc・rdsSecurityGroup）・`DatabaseStack`（RDSインスタンス・認証情報）に依存する。Pipelineとは別アカウントの環境（STG/PROD、および`PIPELINE_ACCOUNT_ID`指定時のDEV）については同一アカウント内のライブCDK参照が使えないため、`DeployTargetStack`（各環境のアカウント）が代わりにこれらへ依存し、`PipelineStack`側は命名規則から逆算したARN/名前でインポートするだけになる。
+`PipelineStack` (in the Pipeline account) depends on `NetworkStack` (vpc, rdsSecurityGroup) and `DatabaseStack` (RDS instance, credentials) for environments that share the same account as the Pipeline (by default, only DEV) — needed to place the TargetGroup/Listener for Blue/Green deploys (from ApiStack/WebStack) and the CodeBuild project for Prisma migrations. For environments in a different account from the Pipeline (STG/PROD, and DEV when `PIPELINE_ACCOUNT_ID` is set), live CDK references within the same account aren't available, so `DeployTargetStack` (in each environment's account) depends on these instead, and the `PipelineStack` side just imports the resulting ARN/name reverse-derived from the naming convention.
 
-| スタック | ファイル | アカウント | 役割 |
+| Stack | File | Account | Role |
 |---|---|---|---|
-| `EcrStack` | `lib/stacks/ecr-stack.ts` | Pipeline（デフォルトはDEVと同居） | ECR リポジトリ（api / web × 環境、Pipelineアカウントに集約） |
-| `PipelineStack` | `lib/stacks/pipeline-stack.ts` | Pipeline（デフォルトはDEVと同居） | GitHub Actions用OIDCロール + アプリCodePipeline（Blue/Greenデプロイ・DBマイグレーション、Pipelineとは別アカウントの環境へはクロスアカウント） |
-| `NetworkStack` | `lib/stacks/network-stack.ts` | 環境ごと（DEV/STG/PROD） | VPC・サブネット・セキュリティグループ |
-| `DatabaseStack` | `lib/stacks/database-stack.ts` | 環境ごと（DEV/STG/PROD） | RDS PostgreSQL・DB 認証情報 |
-| `ApiStack` | `lib/stacks/api-stack.ts` | 環境ごと（DEV/STG/PROD） | Hono API サーバー (ECS Fargate、内部ALB) |
-| `WebStack` | `lib/stacks/web-stack.ts` | 環境ごと（DEV/STG/PROD） | Next.js フロントエンド (ECS Fargate、公開ALB) |
-| `DeployTargetStack` | `lib/stacks/deploy-target-stack.ts` | Pipelineとは別アカウントの環境（STG/PROD、および`PIPELINE_ACCOUNT_ID`指定時のDEV） | CodeDeployのDeploymentGroup・Prismaマイグレーション用CodeBuild・Pipelineアカウントが引き受けるクロスアカウントIAMロール |
+| `EcrStack` | `lib/stacks/ecr-stack.ts` | Pipeline (co-located with DEV by default) | ECR repositories (api / web × environment, consolidated in the Pipeline account) |
+| `PipelineStack` | `lib/stacks/pipeline-stack.ts` | Pipeline (co-located with DEV by default) | OIDC role for GitHub Actions + the app CodePipeline (Blue/Green deploy, DB migration; cross-account for environments in a different account from the Pipeline) |
+| `NetworkStack` | `lib/stacks/network-stack.ts` | Per environment (DEV/STG/PROD) | VPC, subnets, security groups |
+| `DatabaseStack` | `lib/stacks/database-stack.ts` | Per environment (DEV/STG/PROD) | RDS PostgreSQL, DB credentials |
+| `ApiStack` | `lib/stacks/api-stack.ts` | Per environment (DEV/STG/PROD) | Hono API server (ECS Fargate, internal ALB) |
+| `WebStack` | `lib/stacks/web-stack.ts` | Per environment (DEV/STG/PROD) | Next.js frontend (ECS Fargate, public ALB) |
+| `DeployTargetStack` | `lib/stacks/deploy-target-stack.ts` | Environments in a different account from the Pipeline (STG/PROD, and DEV when `PIPELINE_ACCOUNT_ID` is set) | CodeDeploy DeploymentGroup, CodeBuild project for Prisma migrations, and the cross-account IAM role assumed by the Pipeline account |
 
 ---
 
-## アーキテクチャ全体図
+## Overall architecture diagram
 
 ```mermaid
 graph TB
     Internet(("Internet"))
 
-    subgraph VPC["VPC（デフォルト: 2 AZ）"]
-        subgraph Public["Public Subnets（AZ-a / AZ-c）"]
+    subgraph VPC["VPC (default: 2 AZs)"]
+        subgraph Public["Public Subnets (AZ-a / AZ-c)"]
             NAT["NAT Gateway"]
             WebALB["Web ALB (internet-facing)\nport 80"]
         end
 
-        subgraph Private["Private Subnets（AZ-a / AZ-c）"]
+        subgraph Private["Private Subnets (AZ-a / AZ-c)"]
             ApiALB["API ALB (internal)\nport 80"]
             WebECS["Web ECS Fargate\nNext.js  :3001"]
             ApiECS["API ECS Fargate\nHono  :3000"]
-            RDS[("RDS PostgreSQL 16\nPOSTGRES_DBで指定  :5432")]
+            RDS[("RDS PostgreSQL 16\nSet via POSTGRES_DB  :5432")]
         end
     end
 
@@ -150,7 +150,7 @@ graph TB
 
     Internet -->|"HTTP :80"| WebALB
     WebALB -->|":3001"| WebECS
-    WebECS -->|"Server Actions経由\nAPI_URL  HTTP :80"| ApiALB
+    WebECS -->|"via Server Actions\nAPI_URL  HTTP :80"| ApiALB
     ApiALB -->|":3000"| ApiECS
     ApiECS -->|":5432 (SSL)"| RDS
     ApiECS -->|"read: DB_USERNAME/PASSWORD, JWT_SECRET"| SM
@@ -159,163 +159,163 @@ graph TB
     NAT --> Internet
 ```
 
-ブラウザは常にWeb ALBのみと通信する（Next.jsのServer Actions + Honoの型付きRPCクライアントによるBFF構成）。API ALBはブラウザから直接到達できない内部ALBで、Webタスクからのみアクセスされる。
+The browser always talks only to the Web ALB (a BFF setup using Next.js Server Actions plus Hono's typed RPC client). The API ALB is an internal ALB unreachable directly from the browser, and is accessed only from the Web tasks.
 
 ---
 
-## セキュリティグループ
+## Security groups
 
-ALB・ECS のセキュリティグループは `EcsFargateService` コンストラクトが自動生成する（`internetFacing: false` の場合、API ALBはプライベートサブネットに配置されるためインターネットから到達不可）。
-RDS セキュリティグループは `NetworkStack` で定義し、`ApiStack` 内で `CfnSecurityGroupIngress` を使って API ECS SG からのインバウンドルールを追加している。加えて、`PipelineStack` がPrismaマイグレーション用CodeBuild（環境ごとに専用SG）からのインバウンドルールも同様のパターンで追加している。
+The ALB/ECS security groups are auto-generated by the `EcsFargateService` construct (when `internetFacing: false`, the API ALB sits in a private subnet and is unreachable from the internet).
+The RDS security group is defined in `NetworkStack`, and `ApiStack` adds an inbound rule from the API ECS SG using `CfnSecurityGroupIngress`. In addition, `PipelineStack` adds an inbound rule from the Prisma-migration CodeBuild (a dedicated SG per environment) the same way.
 
 ```mermaid
 flowchart LR
     Internet["0.0.0.0/0"]
 
-    subgraph WebRoute["Web ルート"]
+    subgraph WebRoute["Web route"]
         WebALB_SG["Web ALB SG (internet-facing)\nInbound: TCP 80\nOutbound: all"]
         WebECS_SG["Web ECS SG\nInbound: TCP 3001 from Web ALB SG\nOutbound: all"]
     end
 
-    subgraph ApiRoute["API ルート（プライベートサブネット内で完結）"]
+    subgraph ApiRoute["API route (entirely within the private subnet)"]
         ApiALB_SG["API ALB SG (internal)\nInbound: TCP 80\nOutbound: all"]
         ApiECS_SG["API ECS SG\nInbound: TCP 3000 from API ALB SG\nOutbound: all"]
     end
 
-    MigrateSG["Migrate CodeBuild SG\n(環境ごと, PipelineStackが作成)"]
+    MigrateSG["Migrate CodeBuild SG\n(per environment, created by PipelineStack)"]
     RDS_SG["RDS SG\nInbound: TCP 5432 from API ECS SG, Migrate CodeBuild SG\nOutbound: none"]
 
     Internet --> WebALB_SG --> WebECS_SG
-    WebECS_SG -->|"VPC内部"| ApiALB_SG --> ApiECS_SG
+    WebECS_SG -->|"within the VPC"| ApiALB_SG --> ApiECS_SG
     ApiECS_SG --> RDS_SG
     MigrateSG --> RDS_SG
 ```
 
 ---
 
-## スタック詳細
+## Stack details
 
 ### EcrStack
 
-環境ごとに api / web の ECR リポジトリペアを管理する、Pipelineアカウント（デフォルトはDEVと同居）のスタック。DEV は常に作成され、STG・PROD は対応するアカウントIDが指定されている場合のみ作成する。
+A stack in the Pipeline account (co-located with DEV by default) that manages an api/web ECR repository pair per environment. DEV is always created; STG/PROD are only created when the corresponding account ID is set.
 
-| 項目 | 値 |
+| Item | Value |
 |---|---|
-| リポジトリ名 | `forge-ts/api-{env}` / `forge-ts/web-{env}` |
-| イメージスキャン | プッシュ時に自動実行（`imageScanOnPush: true`） |
-| ライフサイクルルール | 最新 20 イメージのみ保持 |
-| 削除ポリシー | `RETAIN`（スタック削除時もリポジトリは残る） |
+| Repository name | `forge-ts/api-{env}` / `forge-ts/web-{env}` |
+| Image scanning | Runs automatically on push (`imageScanOnPush: true`) |
+| Lifecycle rule | Keeps only the most recent 20 images |
+| Removal policy | `RETAIN` (the repository survives stack deletion) |
 
-| 環境 | 作成条件 |
+| Environment | Creation condition |
 |---|---|
-| DEV | 常時 |
-| STG | `STG_ACCOUNT_ID` 環境変数が設定されている場合のみ |
-| PROD | `PROD_ACCOUNT_ID` 環境変数が設定されている場合のみ |
+| DEV | Always |
+| STG | Only if the `STG_ACCOUNT_ID` environment variable is set |
+| PROD | Only if the `PROD_ACCOUNT_ID` environment variable is set |
 
-DEV（`PIPELINE_ACCOUNT_ID`でPipelineをDEVと別アカウントにした場合のみ）・STG/PRODリポジトリには、対応するアカウント（`AccountPrincipal`）からの`ecr:BatchGetImage`等のpullを許可するリソースポリシーが自動付与される。各アカウント側のECSタスク実行ロールはIAM側の権限（`AmazonECSTaskExecutionRolePolicy`）を既に持っているため、これだけでクロスアカウントpullが成立する。
+The DEV repository (only when `PIPELINE_ACCOUNT_ID` splits the Pipeline into a different account from DEV) and the STG/PROD repositories automatically get a resource policy allowing pulls (e.g. `ecr:BatchGetImage`) from the corresponding account (`AccountPrincipal`). Since each account's ECS task execution role already has the IAM permission (`AmazonECSTaskExecutionRolePolicy`), this alone is enough to enable a cross-account pull.
 
 ### PipelineStack
 
-Pipelineアカウント（デフォルトはDEVと同居）のスタック。役割は大きく2つ。
+A stack in the Pipeline account (co-located with DEV by default). It has two main roles.
 
-1. **GitHub Actions用のOIDCロール**（IAMのみ、CodePipelineとは無関係）
-   | ロール | 用途 | スコープ |
+1. **OIDC roles for GitHub Actions** (IAM only, unrelated to CodePipeline)
+   | Role | Purpose | Scope |
    |---|---|---|
-   | `github-actions-app-deploy` | DEV ECRへのイメージpush専用 | `refs/heads/main` |
-   | `github-actions-infra-deploy` | `cdk deploy`（`main` Environment承認必須）。Pipelineアカウント自身の`cdk-*`ブートストラップロールに加え、DEV（`PIPELINE_ACCOUNT_ID`指定時）・`STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID`が設定されていればそれぞれの`cdk-*`ロールもAssumeRole対象に含まれる | GitHub Environment `main` |
+   | `github-actions-app-deploy` | Only for pushing images to the DEV ECR | `refs/heads/main` |
+   | `github-actions-infra-deploy` | For `cdk deploy` (requires `main` Environment approval). In addition to the Pipeline account's own `cdk-*` bootstrap roles, if DEV (when `PIPELINE_ACCOUNT_ID` is set)/`STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID` are set, their respective `cdk-*` roles are included as AssumeRole targets too | GitHub Environment `main` |
 
-2. **アプリ用CodePipeline**（`ApiAppPipeline` / `WebAppPipeline`）
-   - **Source**: GitHubではなく、DEV ECRリポジトリ（Pipelineアカウント内）への`:latest`イメージpushをEventBridge経由で検知して起動（`EcrSourceAction`）。ECRは常にPipelineアカウントに集約されるため、このステージ自体はDEVがクロスアカウントの場合でも常にPipelineアカウント内で完結する
-   - **Generate → (Migrate) → Deploy** の順にステージが並ぶ。`Migrate*`（`MigrateDev`/`MigrateStg`/`MigrateProd`）は`ApiAppPipeline`のみに存在し、VPC内に配置したCodeBuildで`prisma migrate deploy`を実行してからBlue/Greenデプロイに進む
-   - `Generate*`ステージは、ECSサービスが現在使用中のタスク定義ではなく、**`cdk deploy`のたびに最新化されるタスク定義のfamily名**（revision省略で最新ACTIVEを取得、例: `stg-api`）を起点にコンテナイメージだけを差し替える（`CODE_DEPLOY`コントローラーのECSサービスはタスク定義の更新をCloudFormationだけでは反映しないため）。対象環境がPipelineとは別アカウントの場合はbuildspec内で`sts assume-role`によりクロスアカウントロールを引き受けてから`ecs describe-task-definition`を呼ぶ
-   - DEV→STG→PRODの昇格は再ビルドではなくECRイメージダイジェストのコピー（`buildPromoteProject`、ECRが常にPipelineアカウントに集約されているため常に同一アカウント内で完結）。承認ゲートは`ApproveStg`/`ApproveProd`（`ManualApprovalAction`）
-   - `Migrate*`・`Deploy*`アクションのうち対象環境がPipelineとは別アカウントのもの（STG/PROD、および`PIPELINE_ACCOUNT_ID`指定時のDEV）は、`DeployTargetStack`（各環境のアカウント）が公開する`pipeline-cross-account-{dev|stg|prod}`ロールを`role`propに渡すことでクロスアカウント実行する（CodePipelineネイティブのクロスアカウントアクション機構）。アーティファクトS3バケットは、いずれかの環境がPipelineとは別アカウントの場合`crossAccountKeys: true`でカスタマー管理KMSキーを使用し、このロールに読み取り・復号権限を付与する
+2. **App CodePipeline** (`ApiAppPipeline` / `WebAppPipeline`)
+   - **Source**: not GitHub — triggered by detecting a `:latest` image push to the DEV ECR repository (within the Pipeline account) via EventBridge (`EcrSourceAction`). Since ECR is always consolidated in the Pipeline account, this stage itself always completes within the Pipeline account, even when DEV is in a different account
+   - Stages run in the order **Generate → (Migrate) → Deploy**. The `Migrate*` stages (`MigrateDev`/`MigrateStg`/`MigrateProd`) exist only in `ApiAppPipeline`, running `prisma migrate deploy` on a CodeBuild project placed inside the VPC before proceeding to the Blue/Green deploy
+   - The `Generate*` stage swaps out only the container image, starting from the **task-definition family name that's kept up to date on every `cdk deploy`** (fetching the latest ACTIVE revision, omitting the revision number — e.g. `stg-api`) rather than the task definition the ECS service is currently using (because an ECS service with the `CODE_DEPLOY` controller doesn't pick up task-definition updates via CloudFormation alone). If the target environment is in a different account from the Pipeline, the buildspec assumes the cross-account role via `sts assume-role` before calling `ecs describe-task-definition`
+   - Promotion from DEV→STG→PROD is a copy of the ECR image digest, not a rebuild (`buildPromoteProject`; since ECR is always consolidated in the Pipeline account, this always completes within the same account). The approval gates are `ApproveStg`/`ApproveProd` (`ManualApprovalAction`)
+   - For `Migrate*`/`Deploy*` actions whose target environment is in a different account from the Pipeline (STG/PROD, and DEV when `PIPELINE_ACCOUNT_ID` is set), execution is cross-account by passing the `pipeline-cross-account-{dev|stg|prod}` role exposed by `DeployTargetStack` (each environment's account) as the `role` prop (CodePipeline's native cross-account action mechanism). If any environment is in a different account from the Pipeline, the artifact S3 bucket uses a customer-managed KMS key via `crossAccountKeys: true`, and grants this role read/decrypt permissions
 
 ### DeployTargetStack
 
-`STG_ACCOUNT_ID` / `PROD_ACCOUNT_ID`（および`PIPELINE_ACCOUNT_ID`でPipelineをDEVと別アカウントにした場合のDEV）が該当する場合のみ、それぞれのアカウントに作成されるスタック。Pipelineアカウントのパイプラインからは対象環境のアカウントに対してCloudFormationのクロスアカウント参照ができないため、デプロイ実行に必要なリソースをアカウントローカルに用意し、`lib/pipeline-naming.ts`の命名規則から逆算できる名前・ARNで公開する。
+A stack created in each of the `STG_ACCOUNT_ID` / `PROD_ACCOUNT_ID` accounts (and DEV, when `PIPELINE_ACCOUNT_ID` splits the Pipeline into a different account from DEV), only when applicable. Since the pipeline in the Pipeline account can't make CloudFormation cross-account references into the target environment's account, the resources needed to execute the deploy are provisioned locally in that account and exposed under the name/ARN that can be reverse-derived from the naming convention in `lib/pipeline-naming.ts`.
 
-| リソース | 用途 |
+| Resource | Purpose |
 |---|---|
-| CodeDeploy Application/DeploymentGroup（Api/Web） | Blue/Greenデプロイの実行先。`ApiStg`/`ApiStgDeploymentGroup`のように命名規則で固定した名前を持つ |
-| Prismaマイグレーション用CodeBuild（Api/Web） | RDSと同じVPCに配置（Pipelineアカウントに置いたCodeBuildはアカウントを跨いでVPCへ到達できないため） |
-| `pipeline-cross-account-{env}` IAMロール | Pipelineアカウント（`AccountPrincipal`）のみが引き受け可能。CodeDeploy操作・CodeBuild起動・ECSタスク定義参照の権限を持つ |
+| CodeDeploy Application/DeploymentGroup (Api/Web) | The target for Blue/Green deploys. Has a fixed name following the naming convention, like `ApiStg`/`ApiStgDeploymentGroup` |
+| CodeBuild project for Prisma migrations (Api/Web) | Placed in the same VPC as the RDS instance (a CodeBuild project in the Pipeline account can't reach across accounts into the VPC) |
+| `pipeline-cross-account-{env}` IAM role | Assumable only by the Pipeline account (`AccountPrincipal`). Holds permissions for CodeDeploy operations, starting CodeBuild, and referencing ECS task definitions |
 
-ECRイメージのpullに必要な権限は、Pipelineアカウントに集約されたECRリポジトリ側のリソースポリシー（`EcrStack`）で許可されるため、このスタック側では追加のECR設定は不要（IAM側の`ecr:BatchGetImage`等の許可のみ付与）。
+The permission to pull ECR images is granted by the resource policy on the ECR repository side (`EcrStack`), consolidated in the Pipeline account, so this stack needs no additional ECR configuration (only the IAM-side `ecr:BatchGetImage` etc. permissions are granted).
 
 ### NetworkStack
 
-- **VPC**: パブリック・プライベートサブネット各 AZ、NAT Gateway 1 台
-- セキュリティグループを 3 つ定義し、下位スタックへ渡す
-- **VPC エンドポイント**: S3（Gateway型、全環境）は常時作成。ECR（API/Docker）・Secrets Manager・CloudWatch Logs（Interface型）は `enableVpcEndpoints` が `true` の場合のみ作成される。`bin/infra.ts` は DEV では `false`、STG/PROD では `true` を指定しており（NAT Gateway経由の通信で足りるDEVはコスト優先、STG/PRODはAWS内部通信に限定）、環境変数での上書きはできない
+- **VPC**: public/private subnets in each AZ, 1 NAT Gateway
+- Defines 3 security groups and passes them down to the lower stacks
+- **VPC endpoints**: the S3 endpoint (Gateway type, all environments) is always created. The ECR (API/Docker), Secrets Manager, and CloudWatch Logs endpoints (Interface type) are only created when `enableVpcEndpoints` is `true`. `bin/infra.ts` sets this to `false` for DEV and `true` for STG/PROD (DEV, where traffic over the NAT Gateway is fine, prioritizes cost; STG/PROD restrict traffic to within AWS), and it cannot be overridden via an environment variable
 
-| セキュリティグループ | インバウンド | アウトバウンド |
+| Security group | Inbound | Outbound |
 |---|---|---|
 | `albSecurityGroup` | TCP 80, 443 (0.0.0.0/0) | all |
 | `ecsSecurityGroup` | TCP 3000 from ALB SG | all |
-| `rdsSecurityGroup` | TCP 5432 from ECS SG | なし |
+| `rdsSecurityGroup` | TCP 5432 from ECS SG | none |
 
-> `albSecurityGroup` / `ecsSecurityGroup` は現在 NetworkStack のみで定義されており、各スタックの ECS サービスには実際には適用されていない（`EcsFargateService` コンストラクトが `deploymentController: CODE_DEPLOY` の場合、ALB・サービスを手動構築しSGも自動生成するため）。`rdsSecurityGroup` は DatabaseStack・ApiStack・PipelineStack（マイグレーション用CodeBuild）に渡され実際に使われる。
+> `albSecurityGroup` / `ecsSecurityGroup` are currently only defined in NetworkStack and aren't actually applied to any stack's ECS service (when the `EcsFargateService` construct uses `deploymentController: CODE_DEPLOY`, it manually builds the ALB/service and auto-generates its own SGs). `rdsSecurityGroup` is passed to DatabaseStack, ApiStack, and PipelineStack (for the migration CodeBuild) and is actually used.
 
 ### DatabaseStack
 
-- RDS PostgreSQL 16 をプライベートサブネットに配置
-- DB 認証情報は Secrets Manager (`DatabaseSecret`) に自動保存
-- `rdsSecurityGroup` を RDS インスタンスに適用
+- Places RDS PostgreSQL 16 in the private subnet
+- DB credentials are automatically stored in Secrets Manager (`DatabaseSecret`)
+- Applies `rdsSecurityGroup` to the RDS instance
 
-| 項目 | 値 |
+| Item | Value |
 |---|---|
-| DB 名 | 環境変数 `POSTGRES_DB` で指定（必須、デフォルト値なし） |
-| ユーザー | `postgres` |
-| ストレージ | 20 GB（最大 100 GB まで自動スケール） |
-| Multi-AZ | 無効 |
+| DB name | Set via the `POSTGRES_DB` environment variable (required, no default) |
+| User | `postgres` |
+| Storage | 20 GB (auto-scales up to 100 GB) |
+| Multi-AZ | Disabled |
 
 ### ApiStack
 
-- `EcsFargateService` コンストラクト（`lib/constructs/ecs-fargate-service.ts`）を利用して ALB + Fargate を構築（`deploymentController: CODE_DEPLOY` のためBlue/Green構成、詳細は [再利用コンストラクト](#再利用コンストラクト-ecsfargateservice) を参照）
-- `internetFacing` はデフォルト `false`（内部ALB）。ブラウザはAPIに直接アクセスせず、Webのサーバー側（Server Actions）からのみ呼び出される
-- RDS 接続情報と JWT シークレットを Secrets Manager から起動時に注入
-- Prisma（`@prisma/adapter-pg`）はRDSの暗号化接続要件に合わせ、`NODE_ENV=production` 時のみ `ssl: { rejectUnauthorized: false }` を有効化
-- `CfnSecurityGroupIngress` で API ECS SG → RDS SG (:5432) のインバウンドルールを追加
-- タスクロールに DB 認証情報・JWT シークレットの `secretsmanager:GetSecretValue` を付与
-- グローバルな `app.onError()` で未捕捉の例外をログ出力してから500を返す（Honoのデフォルト動作は例外を握りつぶすため）
+- Builds ALB + Fargate using the `EcsFargateService` construct (`lib/constructs/ecs-fargate-service.ts`) (a Blue/Green setup, since `deploymentController: CODE_DEPLOY`; see [Reusable construct](#reusable-construct-ecsfargateservice) for details)
+- `internetFacing` defaults to `false` (internal ALB). The browser never accesses the API directly — it's only called from the Web app's server side (Server Actions)
+- Injects RDS connection info and the JWT secret from Secrets Manager at startup
+- Prisma (`@prisma/adapter-pg`) enables `ssl: { rejectUnauthorized: false }` only when `NODE_ENV=production`, to match RDS's encrypted-connection requirement
+- Adds an inbound rule from the API ECS SG → RDS SG (:5432) via `CfnSecurityGroupIngress`
+- Grants the task role `secretsmanager:GetSecretValue` for the DB credentials and JWT secret
+- A global `app.onError()` logs uncaught exceptions before returning a 500 (since Hono's default behavior swallows exceptions)
 
 ```
-環境変数: DB_HOST, DB_PORT, DB_NAME, NODE_ENV
-シークレット: DB_USERNAME, DB_PASSWORD (DatabaseSecret), JWT_SECRET (jwt-secret)
+Environment variables: DB_HOST, DB_PORT, DB_NAME, NODE_ENV
+Secrets: DB_USERNAME, DB_PASSWORD (DatabaseSecret), JWT_SECRET (jwt-secret)
 ```
 
 ### WebStack
 
-- `EcsFargateService` コンストラクトを利用して ALB + Fargate を構築（`internetFacing` はデフォルト `true`、唯一のブラウザからの入口）
-- `API_URL` には ApiStack の ALB DNS 名を渡す（デプロイ時に動的解決）。Next.jsのServer Actions（Honoの型付きRPCクライアント `hc<AppType>()`）がサーバー側からこのURLでAPIを呼び出す。ブラウザは常にWebのみと通信し、APIへ直接アクセスしない
-- `AUTH_URL` には自分自身（WebService）のALB DNS名を渡す（Auth.jsが`trustHost`によるHostヘッダー推測でECSタスクの内部ホスト名を使ってしまう問題を避けるため、明示的に指定）
-- `AUTH_SECRET` はSecrets Managerからシークレットとして注入（Auth.jsのセッション暗号化用）
+- Builds ALB + Fargate using the `EcsFargateService` construct (`internetFacing` defaults to `true` — the only entry point from the browser)
+- Passes ApiStack's ALB DNS name as `API_URL` (resolved dynamically at deploy time). Next.js Server Actions (via Hono's typed RPC client `hc<AppType>()`) call the API at this URL from the server side. The browser always talks only to Web and never accesses the API directly
+- Passes its own (WebService's) ALB DNS name as `AUTH_URL` (set explicitly to avoid a problem where Auth.js's `trustHost` Host-header inference would otherwise pick up the ECS task's internal hostname)
+- Injects `AUTH_SECRET` as a secret from Secrets Manager (used by Auth.js to encrypt the session)
 
 ```
-環境変数: API_URL (http://<API ALB DNS>), AUTH_URL (http://<Web ALB DNS>), NODE_ENV
-シークレット: AUTH_SECRET (Secrets Manager: {env}/auth-secret)
+Environment variables: API_URL (http://<API ALB DNS>), AUTH_URL (http://<Web ALB DNS>), NODE_ENV
+Secrets: AUTH_SECRET (Secrets Manager: {env}/auth-secret)
 ```
 
 ---
 
-## 再利用コンストラクト: EcsFargateService
+## Reusable construct: EcsFargateService
 
-`lib/constructs/ecs-fargate-service.ts` — ApiStack・WebStack で共通利用する ALB + ECS Fargate のコンストラクト。`deploymentController` の値で構築方法が分岐する。`bin/infra.ts` は ApiStack・WebStack いずれも常に `CODE_DEPLOY` を指定するため、**実際にデプロイされるのは常に Blue/Green（CodeDeploy）側**であり、`ECS`（デフォルト）側の `ApplicationLoadBalancedFargateService` パスは現状使われていない。
+`lib/constructs/ecs-fargate-service.ts` — an ALB + ECS Fargate construct shared by ApiStack and WebStack. Which path it builds depends on the value of `deploymentController`. Since `bin/infra.ts` always specifies `CODE_DEPLOY` for both ApiStack and WebStack, **what's actually deployed is always the Blue/Green (CodeDeploy) path**, and the `ECS` (default) path's `ApplicationLoadBalancedFargateService` is currently unused.
 
 ```mermaid
 graph LR
     Props["Props\n(vpc, image, containerPort,\nenvironment, secrets, cpu, memory,\ndeploymentController, internetFacing)"]
     Cluster["ECS Cluster"]
 
-    subgraph CodeDeployBranch["deploymentController: CODE_DEPLOY（実際に使用）"]
+    subgraph CodeDeployBranch["deploymentController: CODE_DEPLOY (actually used)"]
         TaskDef["FargateTaskDefinition"]
         ALB["ApplicationLoadBalancer"]
         ProdListener["Production Listener :80"] --> BlueTG["Blue TargetGroup"]
         TestListener["Test Listener :8080"] --> GreenTG["Green TargetGroup"]
     end
 
-    subgraph EcsBranch["deploymentController: ECS（デフォルト、未使用）"]
+    subgraph EcsBranch["deploymentController: ECS (default, unused)"]
         AlbFs["ApplicationLoadBalancedFargateService\n(ALB + TaskDef + Service + TargetGroup)"]
     end
 
@@ -330,38 +330,38 @@ graph LR
     AlbFs --> HC
 ```
 
-Blue/Green側は `PipelineStack` の `CodeDeployEcsDeployAction` が本番トラフィック（Production Listener）を段階的にGreenへ切り替え、Test Listener（:8080）で新タスクの事前検証を行う。
+On the Blue/Green side, `PipelineStack`'s `CodeDeployEcsDeployAction` gradually shifts production traffic (the Production Listener) over to Green, using the Test Listener (:8080) to pre-verify the new tasks.
 
 ---
 
-## 設定パラメータ
+## Configuration parameters
 
-### アカウント関連
+### Account-related
 
-| 環境変数 | デフォルト | 説明 |
+| Environment variable | Default | Description |
 |---|---|---|
-| `CDK_DEFAULT_ACCOUNT` | なし | DEVアカウントのID。cdk実行時の認証情報からCDK CLIが自動セットするため、明示指定は不要 |
-| `CDK_DEFAULT_REGION` | なし | 全アカウント共通のリージョン。`STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID`/`PIPELINE_ACCOUNT_ID`（DEVと異なる場合）設定時は必須（未設定だと`cdk synth`/`deploy`がエラーで停止する） |
-| `PIPELINE_ACCOUNT_ID` | `CDK_DEFAULT_ACCOUNT`（＝DEVと同居） | Pipeline（`PipelineStack`・`EcrStack`）を配置するアカウントのID。DEVと異なる値を指定した場合のみDEVもクロスアカウントターゲット（`DevDeployTargetStack`）として扱われる |
-| `STG_ACCOUNT_ID` | なし | STGアカウントのID。設定されている場合のみSTG関連スタック（`StgNetworkStack`等・`StgDeployTargetStack`）が作成される |
-| `PROD_ACCOUNT_ID` | なし | PRODアカウントのID。設定されている場合のみPROD関連スタックが作成される |
+| `CDK_DEFAULT_ACCOUNT` | none | The DEV account's ID. Auto-set by the CDK CLI from the credentials used to run cdk, so no explicit value is needed |
+| `CDK_DEFAULT_REGION` | none | The region shared by all accounts. Required when `STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID`/`PIPELINE_ACCOUNT_ID` (if different from DEV) is set (if unset, `cdk synth`/`deploy` fails with an error) |
+| `PIPELINE_ACCOUNT_ID` | `CDK_DEFAULT_ACCOUNT` (i.e. co-located with DEV) | The ID of the account where the Pipeline (`PipelineStack`/`EcrStack`) is placed. DEV is only treated as a cross-account target (`DevDeployTargetStack`) when a value different from DEV is set |
+| `STG_ACCOUNT_ID` | none | The STG account's ID. STG-related stacks (`StgNetworkStack` etc./`StgDeployTargetStack`) are only created when this is set |
+| `PROD_ACCOUNT_ID` | none | The PROD account's ID. PROD-related stacks are only created when this is set |
 
-### 環境ごとのリソース設定
+### Per-environment resource configuration
 
-`bin/infra.ts` の `createEnvInfra()` が読み取る。ほとんどが環境ごとに `DEV_` / `STG_` / `PROD_` を接頭辞として付けた環境変数（`${E}_XXX`）で、環境ごとに個別上書きできる。`POSTGRES_DB` のみ接頭辞なしの共通変数で、必須（未設定だと `cdk synth`/`deploy` がエラーで停止する）。
+Read by `createEnvInfra()` in `bin/infra.ts`. Most are environment variables prefixed per environment with `DEV_` / `STG_` / `PROD_` (`${E}_XXX`), individually overridable per environment. `POSTGRES_DB` is the only unprefixed, shared variable, and it's required (if unset, `cdk synth`/`deploy` fails with an error).
 
-| 環境変数 | デフォルト | 説明 |
+| Environment variable | Default | Description |
 |---|---|---|
-| `POSTGRES_DB` | なし（必須） | RDSのデータベース名。全環境共通の1変数（環境ごとの接頭辞なし） |
-| `{ENV}_MAX_AZS` | `2` | NetworkStackのAZ数 |
-| `{ENV}_DB_INSTANCE_TYPE` | `t3.micro` | RDS インスタンスタイプ |
-| `{ENV}_DB_ALLOCATED_STORAGE` | `20` | 初期ストレージ (GB) |
-| `{ENV}_DB_MAX_ALLOCATED_STORAGE` | `100` | 自動スケール上限 (GB) |
-| `{ENV}_API_CPU` | `256` | API タスクの CPU ユニット |
-| `{ENV}_API_MEMORY_MIB` | `512` | API タスクのメモリ (MiB) |
-| `{ENV}_API_DESIRED_COUNT` | `1` | API タスクの起動数 |
-| `{ENV}_WEB_CPU` | `256` | Web タスクの CPU ユニット |
-| `{ENV}_WEB_MEMORY_MIB` | `512` | Web タスクのメモリ (MiB) |
-| `{ENV}_WEB_DESIRED_COUNT` | `1` | Web タスクの起動数 |
+| `POSTGRES_DB` | none (required) | RDS database name. A single variable shared across all environments (no per-environment prefix) |
+| `{ENV}_MAX_AZS` | `2` | Number of AZs for NetworkStack |
+| `{ENV}_DB_INSTANCE_TYPE` | `t3.micro` | RDS instance type |
+| `{ENV}_DB_ALLOCATED_STORAGE` | `20` | Initial storage (GB) |
+| `{ENV}_DB_MAX_ALLOCATED_STORAGE` | `100` | Auto-scaling upper bound (GB) |
+| `{ENV}_API_CPU` | `256` | CPU units for the API task |
+| `{ENV}_API_MEMORY_MIB` | `512` | Memory (MiB) for the API task |
+| `{ENV}_API_DESIRED_COUNT` | `1` | Number of API task instances |
+| `{ENV}_WEB_CPU` | `256` | CPU units for the Web task |
+| `{ENV}_WEB_MEMORY_MIB` | `512` | Memory (MiB) for the Web task |
+| `{ENV}_WEB_DESIRED_COUNT` | `1` | Number of Web task instances |
 
-`{ENV}` は `DEV` / `STG` / `PROD`（例: `DEV_API_CPU`, `STG_DB_INSTANCE_TYPE`）。`STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID`が設定されている環境のみ意味を持つ。
+`{ENV}` is `DEV` / `STG` / `PROD` (e.g. `DEV_API_CPU`, `STG_DB_INSTANCE_TYPE`). These only take effect for environments whose `STG_ACCOUNT_ID`/`PROD_ACCOUNT_ID` is set.

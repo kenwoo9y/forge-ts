@@ -2,90 +2,90 @@
 
 ## CI - API (`.github/workflows/ci-api.yaml`)
 
-`main` ブランチへの Pull Request で `apps/api/**`・`packages/**`・`pnpm-lock.yaml` に変更があった場合に実行されるワークフロー。Lint/Format チェック・型チェック・Unitテスト・Integrationテストの 4 ジョブが並列で動く。
+Workflow that runs on pull requests to the `main` branch when there are changes to `apps/api/**`, `packages/**`, or `pnpm-lock.yaml`. Four jobs run in parallel: Lint/Format check, type check, unit tests, and integration tests.
 
 ---
 
 ## CI - Web (`.github/workflows/ci-web.yaml`)
 
-`main` ブランチへの Pull Request で `apps/web/**`・`apps/api/**`・`packages/**`・`pnpm-lock.yaml` に変更があった場合に実行されるワークフロー。Lint/Format チェック・型チェック・ユニットテストの 3 ジョブが並列で動く。
+Workflow that runs on pull requests to the `main` branch when there are changes to `apps/web/**`, `apps/api/**`, `packages/**`, or `pnpm-lock.yaml`. Three jobs run in parallel: Lint/Format check, type check, and unit tests.
 
-`apps/web` は Hono API のルート型（`AppType`）を `hc<AppType>()` の型付きクライアントとして参照しているため、`apps/api` の変更にも反応し、型チェック・テストの前に `apps/api` 側もビルドする。
+`apps/web` references the Hono API's route type (`AppType`) as a typed client via `hc<AppType>()`, so it also reacts to changes in `apps/api` — `apps/api` is built first before type checking and testing.
 
 ---
 
 ## CI - Mobile (`.github/workflows/ci-mobile.yaml`)
 
-`main` ブランチへの Pull Request で `apps/mobile/**` に変更があった場合に実行されるワークフロー。Lint/Format チェック・型チェック・ユニットテストの 3 ジョブが並列で動く。
+Workflow that runs on pull requests to the `main` branch when there are changes to `apps/mobile/**`. Three jobs run in parallel: Lint/Format check, type check, and unit tests.
 
 ---
 
 ## CI - Infra (`.github/workflows/ci-infra.yaml`)
 
-`main` ブランチへの Pull Request で `infra/**` に変更があった場合に実行されるワークフロー。AWS CDK コードを対象に Lint/Format チェック・型チェック・ユニットテストの 3 ジョブが並列で動く。
+Workflow that runs on pull requests to the `main` branch when there are changes to `infra/**`. Three jobs run in parallel against the AWS CDK code: Lint/Format check, type check, and unit tests.
 
 ---
 
 ## CI - YAML Format (`.github/workflows/ci-yaml-format.yaml`)
 
-Pull Request で `**/*.yml`・`**/*.yaml` に変更があった場合に実行されるワークフロー。特定のアプリに紐づかないリポジトリ横断のYAMLファイル（GitHub Actions workflow、`.devcontainer` の compose ファイル、`pnpm-workspace.yaml` など）を対象に、Prettier によるフォーマットチェックを行う。
+Workflow that runs on pull requests when there are changes to `**/*.yml` / `**/*.yaml`. Runs a Prettier format check against repo-wide YAML files that aren't tied to a specific app (GitHub Actions workflows, the `.devcontainer` compose file, `pnpm-workspace.yaml`, etc.).
 
 ---
 
 ## CI - Static Checks (`.github/workflows/ci-static-checks.yaml`)
 
-`main` ブランチへの Pull Request で常に実行される、特定のアプリに紐づかないリポジトリ横断の静的解析ワークフロー（path フィルタなし）。未使用コードチェック（Knip）と依存関係ルールチェック（dependency-cruiser）の 2 ジョブが並列で動く。
+A repo-wide static analysis workflow (no path filter) that always runs on pull requests to the `main` branch, independent of any single app. Two jobs run in parallel: unused-code checking (Knip) and dependency-rule checking (dependency-cruiser).
 
 ---
 
-## E2E テスト (`.github/workflows/e2e.yaml`)
+## E2E tests (`.github/workflows/e2e.yaml`)
 
-`main` ブランチへの Pull Request で `apps/web/**` または `apps/api/**` に変更があった場合に Playwright E2E テストを実行するワークフロー（ワークフロー名: `Playwright Tests`）。タイムアウトは 60 分。GitHub Environment（`github.base_ref`）を参照して環境別の設定を適用する。
+Workflow that runs Playwright E2E tests (workflow name: `Playwright Tests`) on pull requests to the `main` branch when there are changes to `apps/web/**` or `apps/api/**`. Timeout is 60 minutes. Applies per-environment settings based on the GitHub Environment (`github.base_ref`).
 
-### 必要な GitHub Secrets
+### Required GitHub Secrets
 
-リポジトリの **Settings > Secrets and variables > Actions** に以下を登録する。
+Register the following under the repository's **Settings > Secrets and variables > Actions**.
 
-| Secret 名 | 必須 | 説明 |
+| Secret name | Required | Description |
 |---|---|---|
-| `E2E_USERNAME` | 必須 | E2E テスト用ユーザーのユーザー名 |
-| `E2E_PASSWORD` | 必須 | E2E テスト用ユーザーのパスワード |
-| `JWT_SECRET` | 任意 | JWT 署名シークレット（未設定時は `ci-jwt-secret`） |
-| `AUTH_SECRET` | 任意 | Auth.js のシークレット（未設定時は `ci-auth-secret`） |
+| `E2E_USERNAME` | Required | Username of the E2E test user |
+| `E2E_PASSWORD` | Required | Password of the E2E test user |
+| `JWT_SECRET` | Optional | JWT signing secret (defaults to `ci-jwt-secret` if unset) |
+| `AUTH_SECRET` | Optional | Auth.js secret (defaults to `ci-auth-secret` if unset) |
 
-### E2E テスト用環境変数（テスト実行時）
+### E2E test environment variables (at test run time)
 
-| 環境変数 | 値 |
+| Environment variable | Value |
 |---|---|
 | `CI` | `true` |
-| `E2E_USERNAME` | Secrets から注入 |
-| `E2E_PASSWORD` | Secrets から注入 |
+| `E2E_USERNAME` | Injected from Secrets |
+| `E2E_PASSWORD` | Injected from Secrets |
 | `BASE_URL` | `http://localhost:3001` |
 | `API_URL` | `http://localhost:3000` |
-| `AUTH_SECRET` | Secrets から注入（未設定時は `ci-auth-secret`） |
+| `AUTH_SECRET` | Injected from Secrets (defaults to `ci-auth-secret` if unset) |
 | `AUTH_TRUST_HOST` | `true` |
 
-### ローカルでの事前確認
+### Checking locally beforehand
 
-以下を確認してから PR を作成すると、CI 失敗を防ぎやすい。
+Checking the following before opening a PR helps avoid CI failures.
 
 ```bash
-# 内部パッケージのビルド
+# Build the internal packages
 pnpm --filter auth --filter error --filter schema build
 
-# Prisma クライアント生成
+# Generate the Prisma client
 pnpm --filter db exec prisma generate
 
-# API パッケージのビルド
+# Build the API package
 pnpm --filter api build
 
-# マイグレーション適用（ローカル DB が起動している前提）
+# Apply migrations (assumes the local DB is running)
 pnpm --filter db exec prisma migrate deploy
 
-# API サーバー起動
+# Start the API server
 cd apps/api && pnpm exec tsx src/index.ts
 
-# Playwright テスト実行
+# Run the Playwright tests
 cd apps/web && pnpm exec playwright test
 ```
 
