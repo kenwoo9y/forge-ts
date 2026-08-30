@@ -110,7 +110,7 @@ export default function SigninScreen() {
 
           <TouchableOpacity
             className="w-full h-12 rounded-xl bg-blue-600 items-center justify-center disabled:opacity-50"
-            onPress={handleSubmit(onSubmit)}
+            onPress={() => handleSubmit(onSubmit)()}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
