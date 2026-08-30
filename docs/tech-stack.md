@@ -1,4 +1,4 @@
-# 📦 使用技術スタック
+# 📦 Tech Stack
 
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
@@ -38,103 +38,103 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
 ![Dependabot](https://img.shields.io/badge/dependabot-025E8C?style=for-the-badge&logo=dependabot&logoColor=white)
 
-## 🧠 共通設定・言語
-- **言語**: TypeScript（全体で統一）
-- **実行環境**: Node.js
-- **パッケージマネージャー**: pnpm
-- **モノレポ管理**: Turborepo
-- **コード整形・静的解析**: Biome（アプリ・パッケージ全般）、Prettier（YAMLファイルのみ）
-- **共通設定**: `packages/config` に Biome / tsconfig / vitest を集約
-- **スペルチェック**: cspell
-- **未使用コード検出**: Knip（未使用ファイル・依存関係・exportsの検出）
-- **依存関係ルール検証**: dependency-cruiser（循環参照・devDependenciesへの不正な依存の検出。`apps/web`・`apps/mobile` は `@/*` パスエイリアス解決用に個別設定を継承）
-- **Gitフック**: Lefthook（pre-commit: Biome check / YAML整形 / git-secrets によるシークレットスキャン / cspell、commit-msg: commitlint、pre-push: 型チェック / Knipによる未使用コードチェック / dependency-cruiserによる依存関係ルールチェック）
-- **コミットメッセージ規約**: commitlint
+## 🧠 Shared configuration & language
+- **Language**: TypeScript (unified across the whole repo)
+- **Runtime**: Node.js
+- **Package manager**: pnpm
+- **Monorepo management**: Turborepo
+- **Formatting / static analysis**: Biome (apps and packages in general), Prettier (YAML files only)
+- **Shared config**: Biome / tsconfig / vitest configs are centralized in `packages/config`
+- **Spell checking**: cspell
+- **Unused code detection**: Knip (detects unused files, dependencies, and exports)
+- **Dependency rule enforcement**: dependency-cruiser (detects circular references and invalid dependencies on devDependencies; `apps/web`/`apps/mobile` inherit their own config for resolving the `@/*` path alias)
+- **Git hooks**: Lefthook (pre-commit: Biome check / YAML formatting / secret scanning via git-secrets / cspell; commit-msg: commitlint; pre-push: type check / unused-code check via Knip / dependency rule check via dependency-cruiser)
+- **Commit message convention**: commitlint
 
 ---
 
-## 🖥 フロントエンド（Web）
-- **フレームワーク**: Next.js（App Router）
-- **CSSフレームワーク**: TailwindCSS v4
-- **UIライブラリ**: shadcn/ui（Radix UI + class-variance-authority、アイコン: lucide-react）
-- **フォーム**: React Hook Form + Zod
-- **データフェッチ**: TanStack Query
-- **テーブル**: TanStack Table
-- **認証**: Auth.js（NextAuth v5）Credentials プロバイダー
-- **テスト**:
-  - Unitテスト: Vitest
-  - E2Eテスト: Playwright
-  - UIドキュメント: Storybook
+## 🖥 Frontend (Web)
+- **Framework**: Next.js (App Router)
+- **CSS framework**: TailwindCSS v4
+- **UI library**: shadcn/ui (Radix UI + class-variance-authority, icons: lucide-react)
+- **Forms**: React Hook Form + Zod
+- **Data fetching**: TanStack Query
+- **Tables**: TanStack Table
+- **Auth**: Auth.js (NextAuth v5) Credentials provider
+- **Testing**:
+  - Unit tests: Vitest
+  - E2E tests: Playwright
+  - UI documentation: Storybook
 
 ---
 
-## 📱 モバイル
-- **フレームワーク**: React Native + Expo
-- **ルーティング**: Expo Router（ファイルベース）
-- **CSSフレームワーク**: NativeWind（Tailwind CSS ベース）
-- **フォーム**: React Hook Form + Zod
-- **データフェッチ**: TanStack Query
-- **テスト**:
-  - Unitテスト: Vitest
-  - UIドキュメント: Storybook
+## 📱 Mobile
+- **Framework**: React Native + Expo
+- **Routing**: Expo Router (file-based)
+- **CSS framework**: NativeWind (Tailwind CSS-based)
+- **Forms**: React Hook Form + Zod
+- **Data fetching**: TanStack Query
+- **Testing**:
+  - Unit tests: Vitest
+  - UI documentation: Storybook
 
 ---
 
-## 🌐 バックエンド（API）
-- **フレームワーク**: Hono（@hono/zod-openapi、@hono/swagger-ui）
-- **認証**: bcryptjs（パスワードハッシュ化）+ jose（JWT 署名・検証）
-- **ロギング**: pino + hono-pino
-- **Docker対応**: ECSデプロイ用Dockerfileあり
-- **テスト**:
-  - Unitテスト: Vitest
-  - Integrationテスト: Vitest（HTTPエンドポイント〜実DBを一気通貫で検証）
+## 🌐 Backend (API)
+- **Framework**: Hono (@hono/zod-openapi, @hono/swagger-ui)
+- **Auth**: bcryptjs (password hashing) + jose (JWT signing/verification)
+- **Logging**: pino + hono-pino
+- **Docker support**: includes a Dockerfile for ECS deployment
+- **Testing**:
+  - Unit tests: Vitest
+  - Integration tests: Vitest (verifies end-to-end from the HTTP endpoint through the real DB)
 
 ---
 
-## 🛢 データベース・ORM
-- **データベース**: PostgreSQL
-- **ORM**: Prisma（`@prisma/adapter-pg` による Driver Adapter 経由で接続）
-- **構成**:
+## 🛢 Database / ORM
+- **Database**: PostgreSQL
+- **ORM**: Prisma (connects via a Driver Adapter through `@prisma/adapter-pg`)
+- **Layout**:
   - Prisma schema: `packages/db/prisma/schema.prisma`
-  - マイグレーション: `packages/db/prisma/migrations`
+  - Migrations: `packages/db/prisma/migrations`
 
 ---
 
-## ☁️ インフラ / デプロイ
-- **IaC**: AWS CDK（`infra/` に定義）
-- **構成**:
-  - Web: ECS + Fargate（Next.js / Auth.js のSSRに対応）
+## ☁️ Infrastructure / Deploy
+- **IaC**: AWS CDK (defined under `infra/`)
+- **Composition**:
+  - Web: ECS + Fargate (supports Next.js/Auth.js SSR)
   - API: ECS + Fargate
-  - DB: RDS PostgreSQL（プライベートサブネット）
-  - ネットワーク: VPC / ALB / セキュリティグループ
-- **Docker**: Dev用・本番用をそれぞれ定義
+  - DB: RDS PostgreSQL (private subnet)
+  - Network: VPC / ALB / security groups
+- **Docker**: separate definitions for dev and production
 - **CI/CD**: GitHub Actions
 
 ---
 
-## 🧪 テスト / CI / DevOps
-- **Unitテスト**: Vitest（Web / Mobile / API / Packages）
-- **Integrationテスト**: Vitest（API。実DBに対してHTTPエンドポイント〜DBを一気通貫で検証）
-- **E2Eテスト**: Playwright（主にWeb UI対象）
+## 🧪 Testing / CI / DevOps
+- **Unit tests**: Vitest (Web / Mobile / API / Packages)
+- **Integration tests**: Vitest (API; verifies end-to-end from the HTTP endpoint through the real DB)
+- **E2E tests**: Playwright (mainly targets the Web UI)
 - **CI/CD**:
-  - GitHub Actions: `ci-api`（lint / type-check / unit test / integration test）、`ci-web` / `ci-mobile` / `ci-infra`（lint / type-check / test）、`ci-yaml-format`（YAMLフォーマット検証）、`ci-static-checks`（Knipによる未使用コードチェック・dependency-cruiserによる依存関係ルールチェック、リポジトリ全体を対象にPR時実行）
-  - Dependabot: 依存パッケージの自動更新
+  - GitHub Actions: `ci-api` (lint / type-check / unit test / integration test), `ci-web` / `ci-mobile` / `ci-infra` (lint / type-check / test), `ci-yaml-format` (YAML format validation), `ci-static-checks` (unused-code check via Knip, dependency rule check via dependency-cruiser; runs repo-wide on PRs)
+  - Dependabot: automated dependency updates
 
 ---
 
-## 💻 開発環境
-- **Dev Container**: `.devcontainer/` に Dockerfile + docker-compose を配置
-- **ローカル環境構築**:
-  - API・DBを含むローカル実行環境は docker-compose で起動可能
+## 💻 Development environment
+- **Dev Container**: Dockerfile + docker-compose under `.devcontainer/`
+- **Local setup**:
+  - A local runtime environment, including the API and DB, can be started with docker-compose
 
 ---
 
-## 📁 パッケージ構成
-- `apps/web`：Next.js App Router
-- `apps/mobile`：React Native + Expo
-- `apps/api`：Hono API
-- `packages/db`：Prisma ORM / DBクライアント
-- `packages/auth`：bcryptjs + Zod による認証バリデーション共通ロジック
-- `packages/schema`：Zod スキーマ共有（API・Web 間）
-- `packages/error`：共通エラー型定義
-- `packages/config`：Biome / tsconfig / vitest 設定
+## 📁 Package layout
+- `apps/web`: Next.js App Router
+- `apps/mobile`: React Native + Expo
+- `apps/api`: Hono API
+- `packages/db`: Prisma ORM / DB client
+- `packages/auth`: shared auth validation logic using bcryptjs + Zod
+- `packages/schema`: shared Zod schemas (between API and Web)
+- `packages/error`: shared error type definitions
+- `packages/config`: Biome / tsconfig / vitest configuration

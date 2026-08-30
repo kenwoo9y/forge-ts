@@ -5,97 +5,95 @@
 ![pnpm](https://img.shields.io/badge/pnpm-11.22.0-%234a4a4a.svg?logo=pnpm&logoColor=f69220)
 ![Biome](https://img.shields.io/badge/code%20style-biome-60A5FA.svg?logo=Biome&logoColor=white)
 
-TypeScript モノレポのテンプレート実装例。Hono API・Next.js Web・Expo モバイルの3アプリを Turborepo で管理しています。
+## Documentation
 
-## ドキュメント
-
-- [技術スタック](docs/tech-stack.md)
-- [インフラアーキテクチャ](docs/infra-architecture.md)
-- [認証](docs/auth.md)
-- [テスト方針](docs/testing.md)
+- [Tech Stack](docs/tech-stack.md)
+- [Infrastructure Architecture](docs/infra-architecture.md)
+- [Authentication](docs/auth.md)
+- [Testing Strategy](docs/testing.md)
 - [CI](docs/ci.md)
-- [デプロイ](docs/deploy.md)
+- [Deploy](docs/deploy.md)
 
-## このテンプレートを使い始める
+## Getting started with this template
 
-別名でクローンした場合は、プロジェクト名由来の文言（`forge-ts`）を一括置換できます。
+If you cloned the repo under a different name, you can bulk-replace the project-name-derived string (`forge-ts`).
 
 ```bash
 make rename NAME=my-app
 ```
 
-`NAME` は小文字英数字とハイフンのみの kebab-case で指定してください（例: `my-app`）。大文字・スペース・アンダースコアなどを含む値を渡すと、`package.json` の `name` フィールド等に不正な値がそのまま書き込まれるため、必ず kebab-case で指定してください。
+`NAME` must be kebab-case, using only lowercase alphanumerics and hyphens (e.g. `my-app`). Passing a value with uppercase letters, spaces, or underscores will write that invalid value as-is into fields like `name` in `package.json`, so always use kebab-case.
 
-`git diff` で変更内容を確認してからコミットしてください。
+Review the changes with `git diff` before committing.
 
-## 起動
+## Getting started
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-## 開発環境 (Codespaces / ローカル)
+## Development environment (Codespaces / local)
 
-このリポジトリでは PostgreSQL の接続情報と AWS SSO の設定を環境変数で渡す必要があります。
+This repository requires PostgreSQL connection info and AWS SSO settings to be passed via environment variables.
 
-- Codespaces: リポジトリ（または組織）の Codespaces シークレットとして下記の変数を設定してください。
-- ローカル: リポジトリにコミットしないファイル `.devcontainer/.env` を作成し、同じ環境変数を定義してください。テンプレートは `.devcontainer/.env.example` にあります。
+- Codespaces: set the variables below as Codespaces secrets on the repository (or organization).
+- Local: create a file `.devcontainer/.env` (not committed to the repo) and define the same environment variables there. A template is available at `.devcontainer/.env.example`.
 
 ```bash
 cp .devcontainer/.env.example .devcontainer/.env
-# .devcontainer/.env を編集して各値を入力
+# Edit .devcontainer/.env and fill in each value
 ```
 
-### Codespaces シークレットの設定手順
+### Setting up Codespaces secrets
 
-1. GitHub の該当リポジトリにアクセスします。
-2. `Settings` → `Secrets and variables` → `Codespaces` → `Repository secrets` に移動します。
-3. 以下の変数をすべて追加します。
+1. Go to the relevant repository on GitHub.
+2. Navigate to `Settings` → `Secrets and variables` → `Codespaces` → `Repository secrets`.
+3. Add all of the following variables.
 
 **PostgreSQL**
 
-| シークレット名 | 説明 |
+| Secret name | Description |
 |---|---|
-| `POSTGRES_DB` | データベース名 |
-| `POSTGRES_USER` | ユーザー名 |
-| `POSTGRES_PASSWORD` | パスワード |
+| `POSTGRES_DB` | Database name |
+| `POSTGRES_USER` | Username |
+| `POSTGRES_PASSWORD` | Password |
 
 **AWS SSO**
 
-| シークレット名 | 説明 |
+| Secret name | Description |
 |---|---|
-| `SSO_SESSION` | SSO セッション名（任意の名前。例: `my-company`） |
-| `SSO_START_URL` | SSO ポータル URL（例: `https://xxxxx.awsapps.com/start`） |
-| `SSO_REGION` | SSO リージョン（例: `ap-northeast-1`） |
-| `SSO_ACCOUNT_ID` | AWS アカウント ID（例: `123456789012`） |
-| `SSO_ROLE_NAME` | 使用する IAM ロール名（例: `AdministratorAccess`） |
+| `SSO_SESSION` | SSO session name (any name, e.g. `my-company`) |
+| `SSO_START_URL` | SSO portal URL (e.g. `https://xxxxx.awsapps.com/start`) |
+| `SSO_REGION` | SSO region (e.g. `ap-northeast-1`) |
+| `SSO_ACCOUNT_ID` | AWS account ID (e.g. `123456789012`) |
+| `SSO_ROLE_NAME` | IAM role name to use (e.g. `AdministratorAccess`) |
 
-シークレットを設定した後、Codespace を作成するか devcontainer を再起動してください。再起動後に `make aws-login` を実行すると `~/.aws/config` が生成され、AWS SSO 認証が完了します。
+After setting the secrets, create a Codespace or restart the devcontainer. Once restarted, running `make aws-login` generates `~/.aws/config` and completes AWS SSO authentication.
 
-### Prisma 用環境変数ファイルの作成
+### Creating the Prisma environment file
 
-Prisma が DB に接続するために `packages/db/.env` が必要です。テンプレートをコピーし、接続情報を設定してください。
+Prisma needs `packages/db/.env` to connect to the DB. Copy the template and fill in the connection info.
 
 ```bash
 cp packages/db/.env.example packages/db/.env
 ```
 
-`packages/db/.env` を編集し、接続情報を設定します。
+Edit `packages/db/.env` and set the connection info.
 
 ```
 DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@postgres:5432/<POSTGRES_DB>"
 ```
 
-### API 用環境変数ファイルの作成
+### Creating the API environment file
 
-Hono API の実行に必要な環境変数を `apps/api/.env` に設定します。
+Set the environment variables the Hono API needs to run in `apps/api/.env`.
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 ```
 
-`apps/api/.env` を編集し、各変数に実際の値を設定します。
+Edit `apps/api/.env` and set the actual value for each variable.
 
 ```
 DB_HOST=postgres
@@ -106,16 +104,16 @@ DB_PASSWORD=<POSTGRES_PASSWORD>
 JWT_SECRET="your-secret-key"
 ```
 
-`JWT_SECRET` は Hono API が JWT の署名・検証に使用するシークレットです。安全なランダム文字列を設定してください。
+`JWT_SECRET` is the secret the Hono API uses to sign and verify JWTs. Set a secure random string.
 
 ```bash
-# 生成例
+# Example generation
 openssl rand -base64 32
 ```
 
-### Web アプリ用環境変数ファイルの作成
+### Creating the Web app environment file
 
-`apps/web/.env.local` が必要です。テンプレートをコピーし、各変数を設定してください。
+`apps/web/.env.local` is required. Copy the template and set each variable.
 
 ```bash
 cp apps/web/.env.local.example apps/web/.env.local
@@ -126,42 +124,42 @@ API_URL=http://localhost:3000
 AUTH_SECRET="your-secret-key"
 ```
 
-- `API_URL` — Auth.js のサインイン処理（サーバーサイド）が Hono API を呼び出すための URL です。
-- `AUTH_SECRET` — Auth.js が JWT セッションを暗号化するためのシークレットです。`JWT_SECRET` とは別の値を設定してください。
+- `API_URL` — the URL Auth.js's sign-in flow (server-side) uses to call the Hono API.
+- `AUTH_SECRET` — the secret Auth.js uses to encrypt the JWT session. Use a value different from `JWT_SECRET`.
 
-## データベース
+## Database
 
-### マイグレーション
+### Migrations
 
-マイグレーションファイルの生成と実行には `make` コマンドを使用します。
+Use `make` commands to generate and run migration files.
 
 ```bash
-# マイグレーションファイルを生成（スキーマ変更後に実行）
+# Generate a migration file (run after changing the schema)
 make migrate-generate
 
-# マイグレーションを実行
+# Run migrations
 make migrate
 ```
 
-- `make migrate-generate` は `packages/db/prisma/schema.prisma` の変更を元に新しいマイグレーションファイルを `packages/db/prisma/migrations/` に生成します（`--create-only` のため、適用は行いません）。
-- `make migrate` はマイグレーションを実行し、ローカルの PostgreSQL データベースに反映します。
+- `make migrate-generate` generates a new migration file under `packages/db/prisma/migrations/` based on changes to `packages/db/prisma/schema.prisma` (it does not apply it, since it uses `--create-only`).
+- `make migrate` runs the migrations and applies them to the local PostgreSQL database.
 
-### DB 接続
+### DB connection
 
-ローカルの PostgreSQL データベースに直接接続するには、以下のコマンドを実行します。
+To connect directly to the local PostgreSQL database, run:
 
 ```bash
 make psql
 ```
 
-パスワードの入力を求められるので、`.devcontainer/.env` に設定した `POSTGRES_PASSWORD` の値を入力してください。
+You'll be prompted for a password — enter the `POSTGRES_PASSWORD` value you set in `.devcontainer/.env`.
 
-## テスト
+## Testing
 
 ```bash
 pnpm test
 ```
 
-## AWS インフラのデプロイ
+## Deploying the AWS infrastructure
 
-DEV から始めて、段階的に STG・PROD を追加できます。初回セットアップ手順・STG/PROD の追加方法・CI/CD の流れの詳細は [デプロイ](docs/deploy.md) を、スタック構成・リソースサイズの既定値は [インフラアーキテクチャ](docs/infra-architecture.md) を参照してください。
+You can start with DEV and add STG/PROD incrementally. For details on the initial setup, adding STG/PROD, and the CI/CD flow, see [Deploy](docs/deploy.md); for stack composition and default resource sizes, see [Infrastructure Architecture](docs/infra-architecture.md).

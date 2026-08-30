@@ -1,32 +1,32 @@
 # web
 
-Next.js ベースの Web アプリ。Auth.js で認証、TanStack Query でサーバー状態管理、Tailwind CSS + shadcn/ui で UI を構築します。
+A Next.js-based web app. Uses Auth.js for authentication, TanStack Query for server-state management, and Tailwind CSS + shadcn/ui for the UI.
 
-## 起動
+## Getting started
 
-モノレポのルートから `pnpm dev` で全アプリを一括起動できます。
+You can start all apps at once with `pnpm dev` from the monorepo root.
 
-単体で起動する場合:
+To run it standalone:
 
 ```bash
 cd apps/web
 pnpm dev
 ```
 
-## URL
+## URLs
 
-| 用途 | URL |
+| Purpose | URL |
 |---|---|
-| Web アプリ | http://localhost:3001 |
+| Web app | http://localhost:3001 |
 | Storybook | http://localhost:6006 |
 
-## E2E テスト
+## E2E tests
 
-[Playwright](https://playwright.dev) を使った E2E テストが `e2e/` ディレクトリに格納されています。
+E2E tests using [Playwright](https://playwright.dev) live under the `e2e/` directory.
 
-### ローカル実行手順
+### Running locally
 
-#### 1. ブラウザのインストール（初回のみ）
+#### 1. Install browsers (first time only)
 
 ```bash
 cd apps/web
@@ -34,73 +34,73 @@ pnpm exec playwright install
 sudo pnpm exec playwright install-deps
 ```
 
-#### 2. 環境変数の設定（初回のみ）
+#### 2. Set environment variables (first time only)
 
-`.env.local.example` をコピーして `.env.local` を作成し、E2E テスト用の認証情報を設定します。
+Copy `.env.local.example` to create `.env.local`, and set the credentials used for E2E tests.
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-`.env.local` を編集して以下を設定します：
+Edit `.env.local` and set the following:
 
 ```
-E2E_USERNAME=your_test_user   # テストユーザーのユーザー名（任意の値）
-E2E_PASSWORD=your_password    # テストユーザーのパスワード（任意の値：8文字以上）
+E2E_USERNAME=your_test_user   # Test user's username (any value)
+E2E_PASSWORD=your_password    # Test user's password (any value, 8+ characters)
 ```
 
-#### 3. API サーバーの起動
+#### 3. Start the API server
 
-別ターミナルで API サーバーを起動します。
+Start the API server in a separate terminal.
 
 ```bash
 cd apps/api
 pnpm dev
 ```
 
-#### 4. テストユーザーの作成（初回・DB リセット後）
+#### 4. Create the test user (first time, and after any DB reset)
 
-`.env.local` の `E2E_USERNAME` / `E2E_PASSWORD` と同じ認証情報でユーザーを作成します。
+Create a user with credentials matching `E2E_USERNAME`/`E2E_PASSWORD` from `.env.local`.
 
-#### 5. Next.js サーバーの起動
+#### 5. Start the Next.js server
 
-`pnpm dev`（開発モード）では Auth.js のセッション処理が正常に動作しないため、プロダクションビルドで起動します。
+Auth.js's session handling doesn't work correctly under `pnpm dev` (dev mode), so start it from a production build instead.
 
 ```bash
 cd apps/web
 NODE_ENV=production pnpm exec next build && pnpm exec next start
 ```
 
-> `NODE_ENV=production` を明示するのは、devcontainer 環境で `NODE_ENV=development` が設定されており、そのままビルドするとプリレンダリングに失敗するためです。
+> `NODE_ENV=production` is set explicitly because the devcontainer environment has `NODE_ENV=development` set, and building as-is would fail pre-rendering.
 
-サーバーが起動済みであれば、Playwright は自動的に再利用します（`reuseExistingServer: true`）。
+If the server is already running, Playwright reuses it automatically (`reuseExistingServer: true`).
 
-#### 6. テストの実行
+#### 6. Run the tests
 
 ```bash
 cd apps/web
 pnpm test:e2e
 ```
 
-### その他の実行オプション
+### Other run options
 
 ```bash
-pnpm test:e2e:ui     # UI モードで実行（ブラウザでテストを確認しながら実行）
-pnpm test:e2e:debug  # デバッグモードで実行（ステップ実行）
+pnpm test:e2e:ui     # Run in UI mode (watch the tests in the browser as they run)
+pnpm test:e2e:debug  # Run in debug mode (step through)
 ```
 
-### テスト構成
+### Test composition
 
-| ファイル | 内容 |
+| File | Description |
 |---|---|
-| `e2e/global.setup.ts` | 認証セットアップ（ログイン状態を保存） |
-| `e2e/auth.spec.ts` | 認証フロー（ログイン・アカウント作成・アクセス保護） |
+| `e2e/global.setup.ts` | Auth setup (saves the logged-in state) |
+| `e2e/auth.spec.ts` | Auth flow (login, account creation, access protection) |
 
-### トラブルシューティング
+### Troubleshooting
 
-| 症状 | 原因 | 対処 |
+| Symptom | Cause | Fix |
 |---|---|---|
-| `Executable doesn't exist` | ブラウザ未インストール | `pnpm exec playwright install` を実行 |
-| `Host system is missing dependencies` | システム依存ライブラリ不足 | `sudo pnpm exec playwright install-deps` を実行 |
-| 認証テストが `/signin` に留まる | テストユーザーが DB に存在しない | 手順 4 でユーザーを作成 |
-| CRUD テストが失敗する | API サーバーが未起動 | 手順 3 で API サーバーを起動 |
+| `Executable doesn't exist` | Browsers not installed | Run `pnpm exec playwright install` |
+| `Host system is missing dependencies` | Missing system dependency libraries | Run `sudo pnpm exec playwright install-deps` |
+| Auth tests stay on `/signin` | Test user doesn't exist in the DB | Create the user per step 4 |
+| CRUD tests fail | API server not running | Start the API server per step 3 |

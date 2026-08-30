@@ -1,23 +1,23 @@
 # mobile
 
-Expo ベースのモバイルアプリ。NativeWind でスタイリング、TanStack Query でサーバー状態管理、React Hook Form でフォーム管理を行います。
+An Expo-based mobile app. Uses NativeWind for styling, TanStack Query for server-state management, and React Hook Form for form handling.
 
-## 起動
+## Getting started
 
-モノレポのルートから `pnpm dev` で全アプリを一括起動できます。
+You can start all apps at once with `pnpm dev` from the monorepo root.
 
-単体で起動する場合:
+To run it standalone:
 
 ```bash
 cd apps/mobile
 pnpm dev
 ```
 
-起動後、Expo Go アプリ（iOS / Android）で QR コードをスキャンして接続します。
+Once started, connect by scanning the QR code with the Expo Go app (iOS / Android).
 
-## URL
+## URLs
 
-| 用途 | URL |
+| Purpose | URL |
 |---|---|
 | Expo Dev Tools | http://localhost:8081 |
 | Storybook | http://localhost:6007 |

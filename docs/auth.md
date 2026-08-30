@@ -1,64 +1,64 @@
-# 認証
+# Authentication
 
-## アーキテクチャ概要
+## Architecture overview
 
 ```
-[ブラウザ]
+[Browser]
     │ username / password
     ▼
 [Auth.js (Next.js)]  ─── POST /auth/signin ──▶ [Hono API]
-    │                                               │ bcrypt 検証
-    │ ◀── { token, username } ───────────────────── │ jose で JWT 署名
+    │                                               │ bcrypt verification
+    │ ◀── { token, username } ───────────────────── │ JWT signing via jose
     │
-    │ NextAuth セッション (JWT) に apiToken を格納
+    │ Stores apiToken in the NextAuth session (JWT)
     │
-    │ API リクエスト時: Authorization: Bearer <token>
+    │ On API requests: Authorization: Bearer <token>
     ▼
 [Hono API]
-    │ jwtMiddleware で Bearer JWT を検証
+    │ Verifies the Bearer JWT via jwtMiddleware
     ▼
 [DB (Prisma / PostgreSQL)]
 ```
 
-## 保護されるルート
+## Protected routes
 
-| 対象 | 保護レベル |
+| Target | Protection level |
 |---|---|
-| `POST /auth/signin` | パブリック |
-| `POST /users` | パブリック（サインアップ） |
-| `GET /users/:username` | パブリック |
-| `/`（Web） | 認証済みセッション必須 |
+| `POST /auth/signin` | Public |
+| `POST /users` | Public (sign-up) |
+| `GET /users/:username` | Public |
+| `/` (Web) | Requires an authenticated session |
 
-現時点では API 側に JWT 必須のエンドポイントは存在しない（テンプレートのサンプルドメインを削除したため）。`infrastructure/auth/jwtMiddleware.ts` の `jwtAuth()` はドメインを問わず再利用できる認証基盤として残しているので、保護したいルートを追加する際は以下のパターンで組み込む。
+Currently there are no JWT-required endpoints on the API side (the template's sample domain has been removed). `jwtAuth()` in `infrastructure/auth/jwtMiddleware.ts` is kept as a reusable auth foundation that works regardless of domain, so when you add a route you want to protect, wire it in with the following pattern.
 
 ```ts
 app.use('/protected-resource', jwtAuth(jwtSecret));
 app.use('/protected-resource/*', jwtAuth(jwtSecret));
 ```
 
-認証系エンドポイント（`POST /auth/signin` / `POST /users`）のリクエスト・レスポンス仕様は Swagger UI（`http://localhost:3000/docs`）を参照。パスワードは bcrypt（salt rounds: 12）でハッシュ化して保存され、JWT の有効期限は 24 時間。
+See the Swagger UI (`http://localhost:3000/docs`) for the request/response spec of the auth endpoints (`POST /auth/signin` / `POST /users`). Passwords are hashed with bcrypt (salt rounds: 12) before being stored, and JWTs expire after 24 hours.
 
-## Web ページ
+## Web pages
 
-[Auth.js (NextAuth v5)](https://authjs.dev/) の Credentials プロバイダーを使用している。
+Uses the Credentials provider of [Auth.js (NextAuth v5)](https://authjs.dev/).
 
-| パス | 説明 |
+| Path | Description |
 |---|---|
-| `/signin` | ログインページ（未認証時のリダイレクト先） |
-| `/signup` | アカウント作成ページ |
-| `/` | 認証済みユーザーのみアクセス可能（ホーム、プレースホルダー） |
+| `/signin` | Sign-in page (redirect target when unauthenticated) |
+| `/signup` | Account creation page |
+| `/` | Accessible only to authenticated users (home, placeholder) |
 
-保護ルートへのアクセスは `proxy.ts`（`config.matcher`）でセッションの有無をチェックする。
+Access to protected routes is checked via `proxy.ts` (`config.matcher`) based on whether a session exists.
 
-## セッションの取得
+## Getting the session
 
 ```ts
-// サーバーコンポーネント
+// Server component
 import { auth } from "@/auth";
 const session = await auth();
 const token = session?.apiToken;
 
-// クライアントコンポーネント
+// Client component
 import { useSession } from "next-auth/react";
 const { data: session } = useSession();
 const token = session?.apiToken;

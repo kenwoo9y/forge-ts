@@ -1,21 +1,21 @@
 # api
 
-Hono ベースの REST API サーバー。Prisma で PostgreSQL に接続し、Zod OpenAPI でスキーマ管理・ドキュメント自動生成を行います。
+A Hono-based REST API server. Connects to PostgreSQL via Prisma, and uses Zod OpenAPI for schema management and auto-generated documentation.
 
-## 起動
+## Getting started
 
-モノレポのルートから `pnpm dev` で全アプリを一括起動できます。
+You can start all apps at once with `pnpm dev` from the monorepo root.
 
-単体で起動する場合:
+To run it standalone:
 
 ```bash
 cd apps/api
 pnpm dev
 ```
 
-## URL
+## URLs
 
-| 用途 | URL |
+| Purpose | URL |
 |---|---|
 | API | http://localhost:3000 |
 | Swagger UI | http://localhost:3000/docs |
