@@ -58,7 +58,7 @@
     "@vitest/coverage-v8": "4.1.11",
     "vitest": "4.1.11",
     "playwright": "^1.61.1",
-    "postcss": "^8.5.14",
+    "postcss": "^8.5.27",
     "postcss-load-config": "^6.0.1",
     "storybook": "^10.5.10",
     "tailwindcss": "^4.3.3",
