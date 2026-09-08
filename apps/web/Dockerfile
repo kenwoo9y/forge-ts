@@ -7,7 +7,7 @@ WORKDIR /app
 
 ENV UV_USE_IO_URING=0
 
-RUN npm install -g pnpm@11.22.0
+RUN npm install -g pnpm@12.3.4
 
 # Copy workspace manifests first for layer caching
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./

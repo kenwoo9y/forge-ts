@@ -2,7 +2,7 @@
 
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?logo=typescript&logoColor=white)
 ![Node.js](https://img.shields.io/badge/node.js-22-6DA55F?logo=node.js&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-11.22.0-%234a4a4a.svg?logo=pnpm&logoColor=f69220)
+![pnpm](https://img.shields.io/badge/pnpm-12.3.4-%234a4a4a.svg?logo=pnpm&logoColor=f69220)
 ![Biome](https://img.shields.io/badge/code%20style-biome-60A5FA.svg?logo=Biome&logoColor=white)
 
 ## Documentation
