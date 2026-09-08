@@ -13,5 +13,12 @@ module.exports = {
     webpackConfig: {
       fileName: path.join(__dirname, "webpack.dependency-cruiser.cjs"),
     },
+    // 'api' is resolved directly to apps/api/src/app.ts (type-only import,
+    // erased at build time) instead of through a package.json dependency.
+    // Treat it like a package boundary: record the edge but don't cruise
+    // into apps/api's own module graph from here (it's checked separately).
+    doNotFollow: {
+      path: ["node_modules", "^\\.\\./api/"],
+    },
   },
 };
