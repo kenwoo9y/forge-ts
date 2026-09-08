@@ -61,9 +61,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
-      - name: Build api package
-        run: pnpm --filter api run build
-
       - name: Run type check
         run: pnpm --filter web run type-check
 
@@ -91,14 +88,6 @@ jobs:
 
       - name: Build auth package
         run: pnpm --filter auth run build
-
-      - name: Generate Prisma client
-        run: pnpm --filter db run generate
-        env:
-          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-
-      - name: Build api package
-        run: pnpm --filter api run build
 
       - name: Run tests
         run: pnpm --filter web run test:coverage

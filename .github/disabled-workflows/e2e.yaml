@@ -49,9 +49,6 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter db exec prisma generate
 
-      - name: Build api package
-        run: pnpm --filter api build
-
       - name: Run database migrations
         run: pnpm --filter db exec prisma migrate deploy
 
