@@ -43,7 +43,7 @@
     "babel-preset-expo": "~57.0.5",
     "@chromatic-com/storybook": "^5.3.0",
     "@storybook/addon-a11y": "^10.5.10",
-    "@storybook/addon-docs": "^10.5.10",
+    "@storybook/addon-docs": "^10.6.0",
     "@storybook/react-vite": "^10.5.10",
     "@types/react": "~19.2.18",
     "@vitejs/plugin-react": "^6.0.2",
