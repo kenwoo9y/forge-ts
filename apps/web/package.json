@@ -56,7 +56,7 @@
     "@vitest/browser-playwright": "5.0.1",
     "@vitest/coverage-v8": "5.0.1",
     "vitest": "5.0.1",
-    "playwright": "^1.61.1",
+    "playwright": "^1.63.0",
     "postcss": "^8.5.27",
     "postcss-load-config": "^6.0.1",
     "storybook": "^10.6.0",
