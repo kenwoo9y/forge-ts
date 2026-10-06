@@ -1648,8 +1648,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@expo-google-fonts/material-symbols@0.4.41':
-    resolution: {integrity: sha512-BKNSJ6oFGWi+aXu6PF+1EdI43J8Ag+Sm7Ste1SXYmC2eYOJasyjXHkKjgkIieBB1eDZQJSPWuPv421Vg6N5tCQ==}
+  '@expo-google-fonts/material-symbols@0.4.48':
+    resolution: {integrity: sha512-aZztj44PyA/sj3TXSwwpLJwqMlTUJ49okbZJYURzEcuERxMQB0KbX7RrLBi8WJnuWz5HFOLlTRxORrJfNnUPNQ==}
 
   '@expo/cli@57.0.13':
     resolution: {integrity: sha512-8gjLMyx+s0dLeDHlcfjM9D9x5yrCU5C6516rmC7q/Wiyuj1fxgr/cbDSmjdpQKkjlvvfvNwtRyMk2zhvhPohiw==}
@@ -8900,7 +8900,7 @@ snapshots:
   '@esbuild/win32-x64@0.28.0':
     optional: true
 
-  '@expo-google-fonts/material-symbols@0.4.41': {}
+  '@expo-google-fonts/material-symbols@0.4.48': {}
 
   '@expo/cli@57.0.13(@expo/dom-webview@57.0.1)(@expo/metro-runtime@56.0.15)(expo-constants@57.0.17)(expo-font@57.0.1)(expo-router@57.0.8)(expo@57.0.11)(react-dom@19.3.0(react@19.3.0))(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1)(typescript@7.0.2)':
     dependencies:
@@ -12351,7 +12351,7 @@ snapshots:
 
   expo-symbols@57.0.1(expo-font@57.0.1)(expo@57.0.11)(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0):
     dependencies:
-      '@expo-google-fonts/material-symbols': 0.4.41
+      '@expo-google-fonts/material-symbols': 0.4.48
       expo: 57.0.11(@babel/core@8.0.1)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@56.0.15)(expo-router@57.0.8)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native-worklets@0.8.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1))(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1)(typescript@7.0.2)
       expo-font: 57.0.1(expo@57.0.11)(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
       react: 19.3.0
