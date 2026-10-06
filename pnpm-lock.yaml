@@ -1787,15 +1787,15 @@ packages:
       typescript:
         optional: true
 
-  '@expo/router-server@57.0.5':
-    resolution: {integrity: sha512-vke39l0bo3H2q9JB/KXpAJ7HpscdTG3Mktbxanc8yn3riWzzSsnv0uxwZGZCrZrnDQzFxlLTXgbZrGkU26ng1w==}
+  '@expo/router-server@57.0.11':
+    resolution: {integrity: sha512-0QxbqEkceb1WDeu5VqNdnTPVHlm3U183F7Y1t5LMohmGRAkHVL0PB4tCHBvEqKpLzOzHVObw3reGkJ1tX48h8Q==}
     peerDependencies:
-      '@expo/metro-runtime': ^57.0.8
+      '@expo/metro-runtime': ^57.0.16
       expo: '*'
-      expo-constants: ^57.0.9
-      expo-font: ^57.0.1
+      expo-constants: ^57.0.19
+      expo-font: ^57.0.4
       expo-router: '*'
-      expo-server: ^57.0.1
+      expo-server: ^57.0.3
       react: '*'
       react-dom: '*'
       react-server-dom-webpack: ~19.0.1 || ~19.1.2 || ~19.2.1
@@ -8921,7 +8921,7 @@ snapshots:
       '@expo/plist': 0.8.1
       '@expo/prebuild-config': 57.0.10(supports-color@8.1.1)(typescript@7.0.2)
       '@expo/require-utils': 57.0.4(supports-color@8.1.1)(typescript@7.0.2)
-      '@expo/router-server': 57.0.5(@expo/metro-runtime@56.0.15)(expo-constants@57.0.17)(expo-font@57.0.1)(expo-router@57.0.8)(expo-server@57.0.1)(expo@57.0.11)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(supports-color@8.1.1)
+      '@expo/router-server': 57.0.11(@expo/metro-runtime@56.0.15)(expo-constants@57.0.17)(expo-font@57.0.1)(expo-router@57.0.8)(expo-server@57.0.1)(expo@57.0.11)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(supports-color@8.1.1)
       '@expo/schema-utils': 57.0.2
       '@expo/spawn-async': 1.8.0
       '@expo/ws-tunnel': 2.0.0(ws@8.21.1)
@@ -9248,7 +9248,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@expo/router-server@57.0.5(@expo/metro-runtime@56.0.15)(expo-constants@57.0.17)(expo-font@57.0.1)(expo-router@57.0.8)(expo-server@57.0.1)(expo@57.0.11)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(supports-color@8.1.1)':
+  '@expo/router-server@57.0.11(@expo/metro-runtime@56.0.15)(expo-constants@57.0.17)(expo-font@57.0.1)(expo-router@57.0.8)(expo-server@57.0.1)(expo@57.0.11)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(supports-color@8.1.1)':
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       expo: 57.0.11(@babel/core@8.0.1)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@56.0.15)(expo-router@57.0.8)(react-dom@19.3.0(react@19.3.0))(react-native-web@0.21.2(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react-native-worklets@0.8.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1))(react-native@0.87.1(@babel/core@8.0.1)(@react-native/metro-config@0.85.2(@babel/core@8.0.1)(supports-color@8.1.1))(@types/react@19.2.18)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1)(typescript@7.0.2)
