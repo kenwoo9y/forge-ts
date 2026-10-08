@@ -22,13 +22,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@12.4.2",
+  "packageManager": "pnpm@12.10.1",
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^20.4.3",
-    "@types/node": "26.6.2",
-    "@vitest/coverage-v8": "5.0.1",
+    "@types/node": "26.6.3",
+    "@vitest/coverage-v8": "5.0.3",
     "cspell": "^10.0.1",
     "dependency-cruiser": "^18.1.1",
     "knip": "^6.29.0",
@@ -36,6 +36,6 @@
     "prettier": "^3.9.4",
     "turbo": "^2.10.7",
     "typescript": "^7.0.2",
-    "vitest": "5.0.1"
+    "vitest": "5.0.3"
   }
 }
