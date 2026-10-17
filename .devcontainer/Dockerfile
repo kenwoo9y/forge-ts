@@ -24,7 +24,7 @@ RUN mkdir -p /home/node && \
     chown -R node:node /home/node
 
 # pnpmのインストール
-RUN npm install -g pnpm@12.10.1
+RUN npm install -g pnpm@12.14.0
 
 # pnpmのパスを確認して設定
 RUN which pnpm && pnpm --version
