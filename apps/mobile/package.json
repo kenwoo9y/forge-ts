@@ -16,7 +16,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~57.0.16",
+    "@expo/metro-runtime": "~58.0.14",
     "@hookform/resolvers": "^5.9.1",
     "@tanstack/react-query": "^5.101.4",
     "expo": "~57.0.11",
@@ -33,21 +33,21 @@
     "react-native": "0.87.1",
     "react-native-css-interop": "^0.2.6",
     "react-native-safe-area-context": "~5.10.1",
-    "react-native-screens": "~4.29.0",
+    "react-native-screens": "~4.30.0",
     "react-native-web": "^0.21.2",
     "tailwindcss": "^3.4.17",
-    "zod": "^4.6.1"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
     "babel-preset-expo": "~57.0.5",
     "@chromatic-com/storybook": "^5.3.1",
-    "@storybook/addon-a11y": "^10.6.0",
-    "@storybook/addon-docs": "^10.6.0",
-    "@storybook/react-vite": "^10.6.0",
+    "@storybook/addon-a11y": "^10.6.2",
+    "@storybook/addon-docs": "^10.6.2",
+    "@storybook/react-vite": "^10.6.2",
     "@types/react": "~19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
-    "storybook": "^10.6.0",
+    "storybook": "^10.6.2",
     "typescript": "~7.0.2",
     "vite": "^8.3.4"
   },
