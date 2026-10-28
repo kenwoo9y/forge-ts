@@ -15,9 +15,9 @@ pnpm dev
 
 ## URLs
 
-| Purpose | URL |
-|---|---|
-| Web app | http://localhost:3001 |
+| Purpose   | URL                   |
+| --------- | --------------------- |
+| Web app   | http://localhost:3001 |
 | Storybook | http://localhost:6006 |
 
 ## E2E tests
@@ -91,16 +91,16 @@ pnpm test:e2e:debug  # Run in debug mode (step through)
 
 ### Test composition
 
-| File | Description |
-|---|---|
-| `e2e/global.setup.ts` | Auth setup (saves the logged-in state) |
-| `e2e/auth.spec.ts` | Auth flow (login, account creation, access protection) |
+| File                  | Description                                            |
+| --------------------- | ------------------------------------------------------ |
+| `e2e/global.setup.ts` | Auth setup (saves the logged-in state)                 |
+| `e2e/auth.spec.ts`    | Auth flow (login, account creation, access protection) |
 
 ### Troubleshooting
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| `Executable doesn't exist` | Browsers not installed | Run `pnpm exec playwright install` |
+| Symptom                               | Cause                               | Fix                                          |
+| ------------------------------------- | ----------------------------------- | -------------------------------------------- |
+| `Executable doesn't exist`            | Browsers not installed              | Run `pnpm exec playwright install`           |
 | `Host system is missing dependencies` | Missing system dependency libraries | Run `sudo pnpm exec playwright install-deps` |
-| Auth tests stay on `/signin` | Test user doesn't exist in the DB | Create the user per step 4 |
-| CRUD tests fail | API server not running | Start the API server per step 3 |
+| Auth tests stay on `/signin`          | Test user doesn't exist in the DB   | Create the user per step 4                   |
+| CRUD tests fail                       | API server not running              | Start the API server per step 3              |
