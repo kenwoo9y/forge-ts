@@ -1727,8 +1727,8 @@ packages:
     resolution: {integrity: sha512-dBGu8BAfvUcXvG4HvYth+EhcHEsdC+/fT6HTH/zFvvwfp50LG6uzpzT8TXObwEq/t2B/rvAMV5OolxQ46LWXHg==}
     engines: {node: '>=20.12.0'}
 
-  '@expo/fingerprint@0.21.6':
-    resolution: {integrity: sha512-EKh7ak+SYwXjvX/4P7BcyeLxip2z9KAsnN/55VP10g8H1Ua4Dm/BgLAhgBcbzbsYretYmNEynAcf9oKCK9pjxA==}
+  '@expo/fingerprint@0.21.7':
+    resolution: {integrity: sha512-rE9QN4TXGZxS3PC1yW77D1B6JNnuv3n7hXVUZxFEDDndPKFnQPC0XkqFyIz21oXbtrvThROCbV9CDVJiycCntg==}
     hasBin: true
 
   '@expo/image-utils@0.12.5':
@@ -8889,7 +8889,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@expo/fingerprint@0.21.6(supports-color@8.1.1)':
+  '@expo/fingerprint@0.21.7(supports-color@8.1.1)':
     dependencies:
       '@expo/env': 2.5.3(supports-color@8.1.1)
       '@expo/spawn-async': 1.8.0
@@ -12063,7 +12063,7 @@ snapshots:
       '@expo/config-plugins': 58.0.10(supports-color@8.1.1)(typescript@7.0.2)
       '@expo/devtools': 58.0.2(expo@58.0.17)(react-native@0.87.1(@babel/core@8.0.7)(@react-native/metro-config@0.87.1(@babel/core@8.0.7)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(react@19.3.1)
       '@expo/dom-webview': 58.0.2(expo@58.0.17)(react-native@0.87.1(@babel/core@8.0.7)(@react-native/metro-config@0.87.1(@babel/core@8.0.7)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(react@19.3.1)
-      '@expo/fingerprint': 0.21.6(supports-color@8.1.1)
+      '@expo/fingerprint': 0.21.7(supports-color@8.1.1)
       '@expo/local-build-cache-provider': 58.0.7(supports-color@8.1.1)(typescript@7.0.2)
       '@expo/log-box': 58.0.13(@expo/dom-webview@58.0.2)(expo@58.0.17)(react-native@0.87.1(@babel/core@8.0.7)(@react-native/metro-config@0.87.1(@babel/core@8.0.7)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(react@19.3.1)
       '@expo/log-box-utils': 58.0.2
