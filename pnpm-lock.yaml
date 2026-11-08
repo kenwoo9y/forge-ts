@@ -445,8 +445,8 @@ importers:
         specifier: ^10.6.2
         version: 10.6.3(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(storybook@10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1))
       '@storybook/addon-onboarding':
-        specifier: ^10.6.2
-        version: 10.6.3(storybook@10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1))
+        specifier: ^10.6.5
+        version: 10.6.5(storybook@10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1))
       '@storybook/addon-vitest':
         specifier: ^10.6.2
         version: 10.6.3(@vitest/browser-playwright@5.0.3)(@vitest/browser@5.0.3)(react@19.3.1)(storybook@10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1))(vitest@5.0.3)
@@ -3377,10 +3377,10 @@ packages:
       '@types/react':
         optional: true
 
-  '@storybook/addon-onboarding@10.6.3':
-    resolution: {integrity: sha512-C/7AspvhzErXFOR4VHGBW/+G3gej9Lwr8dqH1oIaf0oi2qlhQB9ZBDe6Ds/u+EnW0C74aPlMwXFjSXk02ycfrg==}
+  '@storybook/addon-onboarding@10.6.5':
+    resolution: {integrity: sha512-mKuSyuCnZ4FG9lTeON9//UHBUFzSFezaVsWGFjdpuhM4MDIy0AvJBXTb4dHvr48QEqokFJCU4Tt8SOoyK69bwA==}
     peerDependencies:
-      storybook: ^10.6.3
+      storybook: ^10.6.5
 
   '@storybook/addon-vitest@10.6.3':
     resolution: {integrity: sha512-ANz0SHAi9OTtrZt+YmcQvP7tcUZrTSm8Gq/nI7p9ZRyHAUOTdGoCex2cPyLc3mEqZTCBnaYXR6ZhURlpGsh9dQ==}
@@ -10247,7 +10247,7 @@ snapshots:
     transitivePeerDependencies:
       - '@types/react-dom'
 
-  '@storybook/addon-onboarding@10.6.3(storybook@10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1))':
+  '@storybook/addon-onboarding@10.6.5(storybook@10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1))':
     dependencies:
       storybook: 10.6.3(@types/react@19.3.0)(prettier@3.9.9)(react@19.3.1)
 
