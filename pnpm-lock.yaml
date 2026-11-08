@@ -841,8 +841,8 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
 
-  '@babel/plugin-transform-block-scoping@7.29.7':
-    resolution: {integrity: sha512-ONyr4+AZhKh8yKWInVxU9AXA9EbsyeLcL6V0dJy6M2/62vuvpGm29zzuymbTpdc451GEpDIdAyPLP3r+P61yKQ==}
+  '@babel/plugin-transform-block-scoping@7.29.13':
+    resolution: {integrity: sha512-q7f5zYLtDLqO11ydQK1w2RqZ1m5kmcAlmgZlfXssKgqVyL8+HgDvWXMxvuEz8TuJfq1UNsY9sB6ABjjtQkN6wA==}
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
@@ -7859,7 +7859,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/plugin-transform-block-scoping@7.29.7(@babel/core@8.0.7)':
+  '@babel/plugin-transform-block-scoping@7.29.13(@babel/core@8.0.7)':
     dependencies:
       '@babel/core': 8.0.7
       '@babel/helper-plugin-utils': 7.29.7
@@ -9994,7 +9994,7 @@ snapshots:
       '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@8.0.7)
       '@babel/plugin-transform-async-generator-functions': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
       '@babel/plugin-transform-async-to-generator': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
-      '@babel/plugin-transform-block-scoping': 7.29.7(@babel/core@8.0.7)
+      '@babel/plugin-transform-block-scoping': 7.29.13(@babel/core@8.0.7)
       '@babel/plugin-transform-class-properties': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
       '@babel/plugin-transform-classes': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
       '@babel/plugin-transform-destructuring': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
@@ -11069,7 +11069,7 @@ snapshots:
       '@babel/plugin-syntax-optional-chaining': 7.8.3(@babel/core@8.0.7)
       '@babel/plugin-transform-async-generator-functions': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
       '@babel/plugin-transform-async-to-generator': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
-      '@babel/plugin-transform-block-scoping': 7.29.7(@babel/core@8.0.7)
+      '@babel/plugin-transform-block-scoping': 7.29.13(@babel/core@8.0.7)
       '@babel/plugin-transform-class-properties': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
       '@babel/plugin-transform-class-static-block': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
       '@babel/plugin-transform-classes': 7.29.7(@babel/core@8.0.7)(supports-color@8.1.1)
