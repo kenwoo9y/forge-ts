@@ -1817,8 +1817,8 @@ packages:
   '@expo/platforms@58.0.1':
     resolution: {integrity: sha512-KtLrtAvpShq16l9lTxd2fZSjULxcGxXrJTHA31iUVqrc+Af7aTAJW4ZB3yQBgi/w+kSb6BB/CG9RXI0ohbMm6g==}
 
-  '@expo/plist@0.10.1':
-    resolution: {integrity: sha512-nuNOqj+r/hGJbZ1Ax3jUpZaOB8UAMHUrISALJEUKaCieTflYj7224EqFWmMpriCGk9wXS1gH+9GGVnSj0tWzuQ==}
+  '@expo/plist@0.10.2':
+    resolution: {integrity: sha512-kaCDdGLtezkt5s1w7iCaISNJ+RkNac/1yBYYE8XyXLSJu3czGHZKzJGQ8fFOrpEGm6GdlIHFpzVeiF01ZVyHyg==}
 
   '@expo/prebuild-config@58.0.15':
     resolution: {integrity: sha512-1qvYdhCRO3iu2iPtTNhVTetk5U3Cmby/MMDQmunFQ94jyrbtpLyb9PvU6bvvRdzoaC7PZbHp3Xvlwtx+Webx9A==}
@@ -8665,7 +8665,7 @@ snapshots:
       '@expo/osascript': 2.8.1
       '@expo/package-manager': 1.14.2
       '@expo/platforms': 58.0.1
-      '@expo/plist': 0.10.1
+      '@expo/plist': 0.10.2
       '@expo/prebuild-config': 58.0.15(supports-color@8.1.1)(typescript@7.0.2)
       '@expo/require-utils': 58.0.4(supports-color@8.1.1)(typescript@7.0.2)
       '@expo/router-server': 58.0.16(@expo/metro-runtime@58.0.14)(expo-constants@58.0.14)(expo-font@58.0.9(expo@58.0.17)(react-native@0.87.1(@babel/core@8.0.7)(@react-native/metro-config@0.87.1(@babel/core@8.0.7)(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.1)(supports-color@8.1.1))(react@19.3.1))(expo-router@58.0.19)(expo-server@58.0.5)(expo@58.0.17)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@8.1.1)
@@ -8736,7 +8736,7 @@ snapshots:
     dependencies:
       '@expo/config-types': 58.0.3
       '@expo/json-file': 11.2.1
-      '@expo/plist': 0.10.1
+      '@expo/plist': 0.10.2
       '@expo/require-utils': 58.0.4(supports-color@8.1.1)(typescript@7.0.2)
       '@expo/sdk-runtime-versions': 1.0.1
       chalk: 4.1.2
@@ -8980,10 +8980,9 @@ snapshots:
 
   '@expo/platforms@58.0.1': {}
 
-  '@expo/plist@0.10.1':
+  '@expo/plist@0.10.2':
     dependencies:
       '@xmldom/xmldom': 0.8.15
-      base64-js: 1.5.1
       xmlbuilder: 15.1.1
 
   '@expo/prebuild-config@58.0.15(supports-color@8.1.1)(typescript@7.0.2)':
