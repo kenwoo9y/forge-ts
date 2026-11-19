@@ -1,6 +1,6 @@
 -include .devcontainer/.env
 
-.PHONY: help lint-check lint-fix format-check format-fix biome-format-check biome-format-fix yaml-format-check check check-fix biome-check biome-check-fix secrets-scan psql migrate-generate migrate aws-login cdk-bootstrap rename
+.PHONY: help lint-check lint-fix format-check format-fix biome-format-check biome-format-fix yaml-format-check check check-fix biome-check biome-check-fix secrets-setup secrets-scan psql migrate-generate migrate aws-login cdk-bootstrap rename
 .DEFAULT_GOAL := help
 
 lint-check: ## Run lint check
@@ -33,6 +33,9 @@ biome-check: ## Run Biome check (lint + format)
 
 biome-check-fix: ## Run Biome check fix (lint + format)
 	pnpm exec biome check --write .
+
+secrets-setup: ## Install git-secrets and register the AWS rule set
+	@bash .devcontainer/setup-git-secrets.sh
 
 secrets-scan: ## Run AWS Git Secrets Scan
 	git secrets --scan
