@@ -1322,8 +1322,8 @@ packages:
   '@cspell/dict-elixir@4.0.8':
     resolution: {integrity: sha512-CyfphrbMyl4Ms55Vzuj+mNmd693HjBFr9hvU+B2YbFEZprE5AG+EXLYTMRWrXbpds4AuZcvN3deM2XVB80BN/Q==}
 
-  '@cspell/dict-en-common-misspellings@2.2.4':
-    resolution: {integrity: sha512-Jy53Gk2yyX2BgJ+NKKufdJxjiNf0aou2QhUKwN1ndaKof25WgqOQ6+27jNU0Fbaw1HVi7vCyFq5oIQxBHhwk2w==}
+  '@cspell/dict-en-common-misspellings@2.2.6':
+    resolution: {integrity: sha512-RMOmCPOJuBfcC8IVLKjs9aqssjLKmhwVI8Yw/xgEnO9trWAiUzESassDATE229xqi1sdtRIIMGHyuxlkL75Xjg==}
 
   '@cspell/dict-en-gb-mit@3.1.29':
     resolution: {integrity: sha512-mInExsCFZui0f9Vg/MToWfQZzwMfPgHX8BCYdZNdXWbYz+jITXcnvssbdUkui/DVbriZVJ74Zu9bv2jOEqTCNA==}
@@ -8377,7 +8377,7 @@ snapshots:
       '@cspell/dict-docker': 1.1.17
       '@cspell/dict-dotnet': 5.0.15
       '@cspell/dict-elixir': 4.0.8
-      '@cspell/dict-en-common-misspellings': 2.2.4
+      '@cspell/dict-en-common-misspellings': 2.2.6
       '@cspell/dict-en-gb-mit': 3.1.29
       '@cspell/dict-en_us': 4.4.40
       '@cspell/dict-filetypes': 3.0.18
@@ -8474,7 +8474,7 @@ snapshots:
 
   '@cspell/dict-elixir@4.0.8': {}
 
-  '@cspell/dict-en-common-misspellings@2.2.4': {}
+  '@cspell/dict-en-common-misspellings@2.2.6': {}
 
   '@cspell/dict-en-gb-mit@3.1.29': {}
 
