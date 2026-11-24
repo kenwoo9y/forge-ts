@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~58.0.14",
-    "@hookform/resolvers": "^7.0.7",
+    "@hookform/resolvers": "^7.0.8",
     "@tanstack/react-query": "^5.106.0",
     "expo": "~58.0.17",
     "expo-constants": "~58.0.14",
